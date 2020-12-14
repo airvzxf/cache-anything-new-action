@@ -22,7 +22,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - run: ./shapshot_start.sh
+    - run: |
+        ls -lhaR "${GITHUB_ACTION_PATH}"
+        "${GITHUB_ACTION_PATH}"/shapshot_start.sh
       shell: bash
 branding:
   color: 'orange'
