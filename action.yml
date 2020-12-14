@@ -11,11 +11,15 @@ inputs:
     description: 'The version is an easy way to create a new cache or come back to a previous.'
     required: false
     default: 'v1.0'
+  cache:
+    description: 'Path of the cache directory.'
+    required: false
+    default: './snapshot'
   script:
     description: 'Bash script which will be executed and cached.'
     required: true
-  directory:
-    description: 'Path of the directory, recommended the main path (/).'
+  search:
+    description: 'Path of the search directory to make the snapshot, recommended the main path (/).'
     required: false
     default: '/'
   exclude:
@@ -29,9 +33,10 @@ runs:
         ENV_RUNNER_TEMP: ${{ runner.temp }}
         ENV_IDENTIFIER: ${{ inputs.identifier }}
         ENV_SCRIPT_PATH: ${{ github.workspace }}/.github/workflows
+        ENV_CACHE: ${{ runner.temp }}/${{ inputs.cache }}
         ENV_SCRIPT: ${{ github.workspace }}/.github/workflows/${{ inputs.script }}
         ENV_VERSION: ${{ inputs.version }}
-        ENV_DIRECTORY: ${{ inputs.directory }}
+        ENV_SEARCH: ${{ inputs.search }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
       run: |
         echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
@@ -42,13 +47,17 @@ runs:
         ls -lha "${GITHUB_ACTION_PATH}"
         ls -lha "${{ github.workspace }}"
         ls -lha "${ENV_SCRIPT_PATH}"
+        "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
         "${ENV_SCRIPT}"
-        #"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
-        #sudo apt update
-        #sudo apt install -y vim
-        #"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
-        #ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
-        #ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_02.txt
+        "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
+        ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
+        ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_02.txt
+        "${GITHUB_ACTION_PATH}"/cache_files.sh \
+            system_files_snapshot_01.txt \
+            system_files_snapshot_02.txt \
+            snapshot_new_files.txt
+        ls -lha "${GITHUB_ACTION_PATH}"
+        ls -lha "${ENV_CACHE}"
       shell: bash
 branding:
   color: 'orange'
