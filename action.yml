@@ -47,8 +47,6 @@ runs:
         "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
         "${ENV_SCRIPT}"
         "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
-        ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
-        ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_02.txt
         "${GITHUB_ACTION_PATH}"/cache_files.sh \
             system_files_snapshot_01.txt \
             system_files_snapshot_02.txt \

@@ -23,5 +23,3 @@ FIND="${FIND_INIT}${FIND_EXCLUDE}${FIND_END}"
 
 echo "FIND: ${FIND}"
 eval "${FIND}"
-
-ls -lha "${ENV_RUNNER_TEMP}"/"${1}"
