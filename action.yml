@@ -33,14 +33,16 @@ runs:
         ENV_DIRECTORY: ${{ inputs.directory }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
       run: |
-        ls -lha "${GITHUB_ACTION_PATH}"
-        "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
-        sudo apt update
-        sudo apt install -y vim
-        ./"${ENV_SCRIPT}"
-        "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
-        ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
-        ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_02.txt
+        ls -lhaR "${GITHUB_ACTION_PATH}"
+        ls -lhaR "${{ github.workspace }}"
+        printenv
+        #./"${ENV_SCRIPT}"
+        #"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
+        #sudo apt update
+        #sudo apt install -y vim
+        #"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
+        #ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
+        #ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_02.txt
       shell: bash
 branding:
   color: 'orange'
