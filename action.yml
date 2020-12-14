@@ -28,15 +28,22 @@ runs:
     - env:
         ENV_RUNNER_TEMP: ${{ runner.temp }}
         ENV_IDENTIFIER: ${{ inputs.identifier }}
-        ENV_SCRIPT: ${{ inputs.script }}
+        ENV_SCRIPT_PATH: ${{ github.workspace }}.github/workflows
+        ENV_SCRIPT: ${ENV_SCRIPT_PATH}/${{ inputs.script }}
         ENV_VERSION: ${{ inputs.version }}
         ENV_DIRECTORY: ${{ inputs.directory }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
       run: |
-        ls -lhaR "${GITHUB_ACTION_PATH}"
-        ls -lhaR "${{ github.workspace }}"
+        echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
+        echo "ENV_IDENTIFIER:     ${ENV_IDENTIFIER}"
+        echo "ENV_SCRIPT_PATH:    ${ENV_SCRIPT_PATH}"
+        echo "ENV_SCRIPT:         ${ENV_SCRIPT}"
+        echo "ENV_VERSION:        ${ENV_VERSION}"
+        ls -lha "${GITHUB_ACTION_PATH}"
+        ls -lha "${{ github.workspace }}"
+        ls -lha "${ENV_SCRIPT_PATH}"
         printenv
-        #./"${ENV_SCRIPT}"
+        "${ENV_SCRIPT}"
         #"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
         #sudo apt update
         #sudo apt install -y vim
