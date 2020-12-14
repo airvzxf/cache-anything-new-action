@@ -3,7 +3,7 @@ author: 'Israel Roldan <israel.alberto.rv@gmail.com>'
 description: >-
   Catch a series of commands then it will check for the new files generated and it should cache those.
 inputs:
-  id:
+  identifier:
     description: 'Unique alias to identify this cache.'
     required: false
     default: 'cache-anything-new'
@@ -22,6 +22,11 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - env:
+      ENV_IDENTIFIER: ${{ inputs.identifier }}
+      ENV_VERSION: ${{ inputs.version }}
+      ENV_DIRECTORY: ${{ inputs.directory }}
+      ENV_EXCLUDE: ${{ inputs.exclude }}
     - run: |
         pwd
         ls -lhaR "${GITHUB_ACTION_PATH}"

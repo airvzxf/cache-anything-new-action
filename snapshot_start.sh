@@ -1,15 +1,15 @@
 #!/bin/bash -e
 
 echo "GITHUB_ACTION_PATH:  ${GITHUB_ACTION_PATH}"
-echo "inputs.id:           ${{ inputs.id }}"
-echo "inputs.version:      ${{ inputs.version }}"
-echo "inputs.directory:    ${{ inputs.directory }}"
-echo "inputs.exclude:      ${{ inputs.exclude }}"
+echo "inputs.identifier:   ${ENV_IDENTIFIER}"
+echo "inputs.version:      ${ENV_VERSION}"
+echo "inputs.directory:    ${ENV_DIRECTORY}"
+echo "inputs.exclude:      ${ENV_EXCLUDE}"
 
 FIND_INIT="sudo find"
-FIND_INIT="${FIND_INIT} ${{ inputs.directory }}"
+FIND_INIT="${FIND_INIT} ${ENV_DIRECTORY}"
 FIND_INIT="${FIND_INIT} -type f,l"
-EXCLUDED=( "${{ inputs.exclude }}" )
+EXCLUDED=( "${ENV_EXCLUDE}" )
 FIND_EXCLUDE=""
 for EXCLUDE in ${EXCLUDED[*]}
 do
