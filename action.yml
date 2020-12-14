@@ -29,8 +29,8 @@ runs:
         echo "inputs.version: ${{ inputs.version }}"
         echo "inputs.exclude: ${{ inputs.exclude }}"
         sudo ls -lha /
-        #sudo du -h -d 1 / 2> /dev/null || true
-        sudo find / -type f,l > ${{ runner.temp }}/system_file.txt 2> /dev/null || true
+        sudo du -h -d 3 / > ${{ runner.temp }}/system_files_size.txt 2> /dev/null || true
+        sudo find / -type f,l > ${{ runner.temp }}/system_files.txt 2> /dev/null || true
       shell: bash
 branding:
   color: 'orange'
