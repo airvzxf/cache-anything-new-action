@@ -31,7 +31,7 @@ runs:
       run: |
         "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
         sudo apt update
-        sudo apt install vim
+        sudo apt install -y vim
         "${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
         ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
         ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_02.txt
