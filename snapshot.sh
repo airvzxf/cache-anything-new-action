@@ -6,6 +6,7 @@ echo "ENV_IDENTIFIER:     ${ENV_IDENTIFIER}"
 echo "ENV_VERSION:        ${ENV_VERSION}"
 echo "ENV_DIRECTORY:      ${ENV_DIRECTORY}"
 echo "ENV_EXCLUDE:        ${ENV_EXCLUDE}"
+echo "1:                  ${1}"
 
 FIND_INIT="sudo find"
 FIND_INIT="${FIND_INIT} ${ENV_DIRECTORY}"
@@ -16,11 +17,11 @@ for EXCLUDE in ${EXCLUDED[*]}; do
   echo "EXCLUDE: ${EXCLUDE}"
   FIND_EXCLUDE="${FIND_EXCLUDE} -not \( -path \"${EXCLUDE}*\" -prune \)"
 done
-FIND_END=" > ${ENV_RUNNER_TEMP}/system_files_snapshot_01.txt"
+FIND_END=" > ${ENV_RUNNER_TEMP}/${1}"
 FIND_END="${FIND_END} 2> /dev/null || true"
 
 FIND="${FIND_INIT}${FIND_EXCLUDE}${FIND_END}"
 echo "FIND: ${FIND}"
 eval "${FIND}"
 
-ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
+ls -lha "${ENV_RUNNER_TEMP}"/"${1}"
