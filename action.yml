@@ -24,23 +24,27 @@ runs:
   steps:
     - run: |
         set -xv
-        echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
-        echo "inputs.id: ${{ inputs.id }}"
-        echo "inputs.version: ${{ inputs.version }}"
-        echo "inputs.directory: ${{ inputs.directory }}"
-        echo "inputs.exclude: ${{ inputs.exclude }}"
+
+        echo "GITHUB_ACTION_PATH:  ${GITHUB_ACTION_PATH}"
+        echo "inputs.id:           ${{ inputs.id }}"
+        echo "inputs.version:      ${{ inputs.version }}"
+        echo "inputs.directory:    ${{ inputs.directory }}"
+        echo "inputs.exclude:      ${{ inputs.exclude }}"
+
         EXCLUDED=( ${{ inputs.exclude }} )
-        for EXCLUDE in ${EXCLUDED}
+        for EXCLUDE in ${EXCLUDED[*]}
         do
           echo "EXCLUDE: ${EXCLUDE}"
-          eval "ls -lha ${EXCLUDE}"
+          eval "file ${EXCLUDE}"
         done
+
         #sudo find \
         #        ${{ inputs.directory }}" \
         #        -type f,l \
         #        -not \( -path "/sys*" -prune \) \
         #        > ${{ runner.temp }}/system_files_snapshot_01.txt \
         #        2> /dev/null || true
+
         #sudo find / -type f,l > ${{ runner.temp }}/system_files.txt 2> /dev/null || true
       shell: bash
 branding:
