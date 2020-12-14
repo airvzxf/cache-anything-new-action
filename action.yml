@@ -28,14 +28,7 @@ runs:
         ENV_VERSION: ${{ inputs.version }}
         ENV_DIRECTORY: ${{ inputs.directory }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
-      run: |
-        pwd
-        ls -lhaR "${GITHUB_ACTION_PATH}"
-        echo "ENV_IDENTIFIER: ${ENV_IDENTIFIER}"
-        echo "ENV_VERSION:    ${ENV_VERSION}   "
-        echo "ENV_DIRECTORY:  ${ENV_DIRECTORY} "
-        echo "ENV_EXCLUDE:    ${ENV_EXCLUDE}   "
-        "${GITHUB_ACTION_PATH}"/snapshot_start.sh
+      run: "${GITHUB_ACTION_PATH}"/snapshot_start.sh
       shell: bash
 branding:
   color: 'orange'
