@@ -32,6 +32,8 @@ runs:
         #sudo du -h -d 1 / 2> /dev/null || true
         #sudo find / -type f,l > ${{ runner.temp }}/sytem_file.txt 2> /dev/null || true
         echo "Hi!" > ${{ runner.temp }}/system_file.txt
+        ls -lha ${{ runner.temp }}
+        ls -lha -R ${{ runner.temp }}
       shell: bash
 branding:
   color: 'orange'
