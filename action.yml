@@ -25,7 +25,8 @@ runs:
         echo "inputs.id: ${{ inputs.id }}"
         echo "inputs.version: ${{ inputs.version }}"
         echo "inputs.exclude: ${{ inputs.exclude }}"
+        du -h -d 1 / 2> /dev/null || true
       shell: bash
 branding:
-  color: 'purple'
+  color: 'orange'
   icon: 'archive'
