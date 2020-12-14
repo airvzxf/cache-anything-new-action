@@ -18,8 +18,8 @@ inputs:
   script:
     description: 'Bash script which will be executed and cached.'
     required: true
-  search:
-    description: 'Path of the search directory to make the snapshot, recommended the main path (/).'
+  snapshot:
+    description: 'The snapshot will be created from this path, recommended the main path (/).'
     required: false
     default: '/'
   exclude:
@@ -36,7 +36,7 @@ runs:
         ENV_CACHE: ${{ runner.temp }}/${{ inputs.cache }}
         ENV_SCRIPT: ${{ github.workspace }}/.github/workflows/${{ inputs.script }}
         ENV_SCRIPT_BASE: ${{ github.workspace }}/.github/workflows
-        ENV_SEARCH: ${{ inputs.search }}
+        ENV_SNAPSHOT: ${{ inputs.snapshot }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
       run: ${GITHUB_ACTION_PATH}/init.sh
       shell: bash

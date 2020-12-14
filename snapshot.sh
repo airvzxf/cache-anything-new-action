@@ -4,12 +4,12 @@ echo "# ----------------------------------------------------------"
 echo "# Create the Snapshot for: ${1}"
 echo "# ----------------------------------------------------------"
 echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
-echo "ENV_SEARCH:         ${ENV_SEARCH}"
+echo "ENV_SNAPSHOT:       ${ENV_SNAPSHOT}"
 echo "ENV_EXCLUDE:        ${ENV_EXCLUDE}"
 echo "Parameter #1:       ${1}"
 
 FIND_INIT="sudo find"
-FIND_INIT="${FIND_INIT} ${ENV_SEARCH}"
+FIND_INIT="${FIND_INIT} ${ENV_SNAPSHOT}"
 FIND_INIT="${FIND_INIT} -type f,l"
 EXCLUDED=("${ENV_EXCLUDE}")
 
