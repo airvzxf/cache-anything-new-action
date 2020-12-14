@@ -1,0 +1,31 @@
+name: 'Cache Anything New'
+author: 'Israel Roldan <israel.alberto.rv@gmail.com>'
+description: >-
+  Catch a series of commands then it will check for the new files generated and it should cache those.
+inputs:
+  id:
+    description: 'Unique alias to identify this cache.'
+    required: false
+    default: 'cache-anything-new'
+  version:
+    description: 'The version is an easy way to create a new cache or come back to a previouse.'
+    required: false
+    default: 'v1.0'
+  exclude:
+    description: 'Exclude directories and files from the indexation. Separate with semi-colon (;).'
+    required: false
+    default: '/sys;/proc;/mnt;/dev;/run;/etc/mtab;/var/cache/apt/archives;/tmp;/var/tmp;/var/backups;/boot;/vmlinuz;'
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        set -xv
+        echo "Hello World!"
+        echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
+        echo "inputs.id: ${{ inputs.id }}"
+        echo "inputs.version: ${{ inputs.version }}"
+        echo "inputs.exclude: ${{ inputs.exclude }}"
+      shell: bash
+branding:
+  color: 'purple'
+  icon: 'archive'
