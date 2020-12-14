@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+echo "# ----------------------------------------------------------"
+echo "# Create the Snapshot for: ${1}"
+echo "# ----------------------------------------------------------"
 echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
 echo "ENV_SEARCH:         ${ENV_SEARCH}"
 echo "ENV_EXCLUDE:        ${ENV_EXCLUDE}"
@@ -21,5 +24,9 @@ FIND_END="${FIND_END} 2> /dev/null || true"
 
 FIND="${FIND_INIT}${FIND_EXCLUDE}${FIND_END}"
 
+echo "----------------------------------------"
 echo "FIND: ${FIND}"
+echo "----------------------------------------"
 eval "${FIND}"
+
+echo "# ----------------------------------------------------------"
