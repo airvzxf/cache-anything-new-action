@@ -11,14 +11,14 @@ inputs:
     description: 'The version is an easy way to create a new cache or come back to a previous.'
     required: false
     default: 'v1.0'
-  include:
-    description: 'Include directories and files from the indexation. Separate with semi-colon (;).'
+  directory:
+    description: 'Path of the directory, recommended the main path (/).'
     required: false
-    default: '/etc;/usr;/var;'
+    default: '/'
   exclude:
-    description: 'Exclude directories and files from the indexation. Separate with semi-colon (;).'
+    description: 'Exclude directories and files from the indexation. Separate with spaces ( ).'
     required: false
-    default: '/sys;/proc;/mnt;/dev;/run;/etc/mtab;/var/cache/apt/archives;/tmp;/var/tmp;/var/backups;/boot;/vmlinuz;'
+    default: '/boot /data /dev /mnt /proc /run /sys'
 runs:
   using: 'composite'
   steps:
@@ -27,13 +27,20 @@ runs:
         echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
         echo "inputs.id: ${{ inputs.id }}"
         echo "inputs.version: ${{ inputs.version }}"
+        echo "inputs.directory: ${{ inputs.directory }}"
         echo "inputs.exclude: ${{ inputs.exclude }}"
-        sudo ls -lha /
-        #sudo du -h -d 3 / > ${{ runner.temp }}/system_files_size.txt 2> /dev/null || true
-        sudo du -h -d 5 /opt > ${{ runner.temp }}/system_files_size_opt.txt 2> /dev/null || true
-        sudo du -h -d 5 /usr > ${{ runner.temp }}/system_files_size_usr.txt 2> /dev/null || true
-        sudo find /opt -type f 2> /dev/null || true | wc -l > ${{ runner.temp }}/system_files_count_opt.txt
-        sudo find /usr -type f 2> /dev/null || true | wc -l > ${{ runner.temp }}/system_files_count_usr.txt
+        EXCLUDED=( ${{ inputs.exclude }} )
+        for EXCLUDE in ${EXCLUDED}
+        do
+          echo "EXCLUDE: ${EXCLUDE}"
+          eval "ls -lha ${EXCLUDE}"
+        done
+        #sudo find \
+        #        ${{ inputs.directory }}" \
+        #        -type f,l \
+        #        -not \( -path "/sys*" -prune \) \
+        #        > ${{ runner.temp }}/system_files_snapshot_01.txt \
+        #        2> /dev/null || true
         #sudo find / -type f,l > ${{ runner.temp }}/system_files.txt 2> /dev/null || true
       shell: bash
 branding:
