@@ -28,7 +28,7 @@ runs:
     - env:
         ENV_RUNNER_TEMP: ${{ runner.temp }}
         ENV_IDENTIFIER: ${{ inputs.identifier }}
-        ENV_SCRIPT_PATH: ${{ github.workspace }}.github/workflows
+        ENV_SCRIPT_PATH: ${{ github.workspace }}/.github/workflows
         ENV_SCRIPT: ${ENV_SCRIPT_PATH}/${{ inputs.script }}
         ENV_VERSION: ${{ inputs.version }}
         ENV_DIRECTORY: ${{ inputs.directory }}
