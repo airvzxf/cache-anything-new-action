@@ -1,12 +1,12 @@
 #!/bin/bash
 
 diff -C 1 \
-      "${ENV_RUNNER_TEMP}/${1}" \
-      "${ENV_RUNNER_TEMP}/${2}" \
-      | grep -E "^\+" \
-      | sed -E s/..// \
-      > "${ENV_RUNNER_TEMP}"/"${3}"
-< "${ENV_RUNNER_TEMP}/${3}" wc -l
+  "${ENV_RUNNER_TEMP}/${1}" \
+  "${ENV_RUNNER_TEMP}/${2}" \
+  | grep -E "^\+" \
+  | sed -E s/..// \
+    > "${ENV_RUNNER_TEMP}"/"${3}"
+wc < "${ENV_RUNNER_TEMP}/${3}" -l
 
 ls -lha "${ENV_RUNNER_TEMP}"/
 
