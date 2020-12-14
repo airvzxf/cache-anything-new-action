@@ -8,7 +8,7 @@ inputs:
     required: false
     default: 'cache-anything-new'
   version:
-    description: 'The version is an easy way to create a new cache or come back to a previouse.'
+    description: 'The version is an easy way to create a new cache or come back to a previous.'
     required: false
     default: 'v1.0'
   exclude:
