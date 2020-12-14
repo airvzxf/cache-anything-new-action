@@ -24,7 +24,6 @@ runs:
   steps:
     - run: |
         pwd
-        ls -lha ./snapshot_start.sh
         ls -lhaR "${GITHUB_ACTION_PATH}"
         "${GITHUB_ACTION_PATH}"/snapshot_start.sh
       shell: bash
