@@ -1,8 +1,14 @@
-#!/bin/bash -exv
+#!/bin/bash -e
 
 echo "# ----------------------------------------------------------"
 echo "# Generated cache directory"
 echo "# ----------------------------------------------------------"
+echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
+echo "ENV_SEARCH:         ${ENV_SEARCH}"
+echo "ENV_CACHE:          ${ENV_CACHE}"
+echo "Parameter #1:       ${1}"
+echo "Parameter #2:       ${2}"
+echo "Parameter #3:       ${3}"
 
 diff -C 1 \
   "${ENV_RUNNER_TEMP}/${1}" \
