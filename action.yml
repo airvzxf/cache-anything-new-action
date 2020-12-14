@@ -30,8 +30,8 @@ runs:
         echo "inputs.exclude: ${{ inputs.exclude }}"
         sudo ls -lha /
         #sudo du -h -d 1 / 2> /dev/null || true
-        #sudo find / -type f,l > sytem_file.txt 2> /dev/null || true
-        echo "Hi!" > system_file.txt
+        #sudo find / -type f,l > ${{ runner.temp }}/sytem_file.txt 2> /dev/null || true
+        echo "Hi!" > ${{ runner.temp }}/system_file.txt
       shell: bash
 branding:
   color: 'orange'
