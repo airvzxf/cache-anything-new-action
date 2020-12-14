@@ -30,12 +30,11 @@ runs:
   using: 'composite'
   steps:
     - env:
-        ENV_RUNNER_TEMP: ${{ runner.temp }}
         ENV_IDENTIFIER: ${{ inputs.identifier }}
-        ENV_SCRIPT_PATH: ${{ github.workspace }}/.github/workflows
+        ENV_VERSION: ${{ inputs.version }}
+        ENV_RUNNER_TEMP: ${{ runner.temp }}
         ENV_CACHE: ${{ runner.temp }}/${{ inputs.cache }}
         ENV_SCRIPT: ${{ github.workspace }}/.github/workflows/${{ inputs.script }}
-        ENV_VERSION: ${{ inputs.version }}
         ENV_SEARCH: ${{ inputs.search }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
       run: |
@@ -58,6 +57,7 @@ runs:
             system_files_snapshot_new_files.txt
         ls -lha "${GITHUB_ACTION_PATH}"
         ls -lha "${ENV_CACHE}"
+        sudo du -h "${ENV_CACHE}"
       shell: bash
 branding:
   color: 'orange'
