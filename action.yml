@@ -29,8 +29,12 @@ runs:
         echo "inputs.version: ${{ inputs.version }}"
         echo "inputs.exclude: ${{ inputs.exclude }}"
         sudo ls -lha /
-        sudo du -h -d 3 / > ${{ runner.temp }}/system_files_size.txt 2> /dev/null || true
-        sudo find / -type f,l > ${{ runner.temp }}/system_files.txt 2> /dev/null || true
+        #sudo du -h -d 3 / > ${{ runner.temp }}/system_files_size.txt 2> /dev/null || true
+        sudo du -h -d 5 /opt > ${{ runner.temp }}/system_files_size_opt.txt 2> /dev/null || true
+        sudo du -h -d 5 /usr > ${{ runner.temp }}/system_files_size_usr.txt 2> /dev/null || true
+        sudo find /opt -type f 2> /dev/null || true | wc -l > ${{ runner.temp }}/system_files_count_opt.txt
+        sudo find /usr -type f 2> /dev/null || true | wc -l > ${{ runner.temp }}/system_files_count_usr.txt
+        #sudo find / -type f,l > ${{ runner.temp }}/system_files.txt 2> /dev/null || true
       shell: bash
 branding:
   color: 'orange'
