@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 echo "GITHUB_ACTION_PATH:  ${GITHUB_ACTION_PATH}"
-echo "GITHUB_ENV:          ${GITHUB_ENV}"
+echo "ENV_RUNNER_TEMP:     ${ENV_RUNNER_TEMP}"
 echo "inputs.identifier:   ${ENV_IDENTIFIER}"
 echo "inputs.version:      ${ENV_VERSION}"
 echo "inputs.directory:    ${ENV_DIRECTORY}"
@@ -17,15 +17,14 @@ do
   echo "EXCLUDE: ${EXCLUDE}"
   FIND_EXCLUDE="${FIND_EXCLUDE} -not \( -path \"${EXCLUDE}*\" -prune \)"
 done
-FIND_END="> ${{ runner.temp }}/system_files_snapshot_01.txt"
-FIND_END="${FIND_END} 2> /dev/null || true"
+FIND_END=" > ${ENV_RUNNER_TEMP}/system_files_snapshot_01.txt"
+FIND_END=" ${FIND_END} 2> /dev/null || true"
 
 FIND="${FIND_INIT}${FIND_EXCLUDE}${FIND_END}"
 echo "FIND: ${FIND}"
-
 #eval ${FIND}
 
-echo "Hello!" > "${{ runner.temp }}"/system_files_snapshot_01.txt
-ls -lha "${{ runner.temp }}"/system_files_snapshot_01.txt
+echo "Hello!" > "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
+ls -lha "${ENV_RUNNER_TEMP}"/system_files_snapshot_01.txt
 
-#sudo find / -type f,l > ${{ runner.temp }}/system_files.txt 2> /dev/null || true
+#sudo find / -type f,l > ${ENV_RUNNER_TEMP}/system_files.txt 2> /dev/null || true

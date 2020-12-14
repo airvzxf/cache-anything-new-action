@@ -23,6 +23,7 @@ runs:
   using: 'composite'
   steps:
     - env:
+        ENV_RUNNER_TEMP: ${{ runner.temp }}
         ENV_IDENTIFIER: ${{ inputs.identifier }}
         ENV_VERSION: ${{ inputs.version }}
         ENV_DIRECTORY: ${{ inputs.directory }}
