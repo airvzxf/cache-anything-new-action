@@ -22,14 +22,13 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - env:
-      ENV_IDENTIFIER: ${{ inputs.identifier }}
-      ENV_VERSION: ${{ inputs.version }}
-      ENV_DIRECTORY: ${{ inputs.directory }}
-      ENV_EXCLUDE: ${{ inputs.exclude }}
     - run: |
         pwd
         ls -lhaR "${GITHUB_ACTION_PATH}"
+        echo "{ENV_IDENTIFIER}={${{ inputs.identifier }}}" >> $GITHUB_ENV
+        echo "{ENV_VERSION}={${{ inputs.version }}}" >> $GITHUB_ENV
+        echo "{ENV_DIRECTORY}={${{ inputs.directory }}}" >> $GITHUB_ENV
+        echo "{ENV_EXCLUDE}={${{ inputs.exclude }}}" >> $GITHUB_ENV
         "${GITHUB_ACTION_PATH}"/snapshot_start.sh
       shell: bash
 branding:

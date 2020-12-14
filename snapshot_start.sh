@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 echo "GITHUB_ACTION_PATH:  ${GITHUB_ACTION_PATH}"
+echo "GITHUB_ENV:          ${GITHUB_ENV}"
 echo "inputs.identifier:   ${ENV_IDENTIFIER}"
 echo "inputs.version:      ${ENV_VERSION}"
 echo "inputs.directory:    ${ENV_DIRECTORY}"
