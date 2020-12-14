@@ -25,10 +25,10 @@ runs:
     - run: |
         pwd
         ls -lhaR "${GITHUB_ACTION_PATH}"
-        echo "{ENV_IDENTIFIER}={${{ inputs.identifier }}}" >> $GITHUB_ENV
-        echo "{ENV_VERSION}={${{ inputs.version }}}" >> $GITHUB_ENV
-        echo "{ENV_DIRECTORY}={${{ inputs.directory }}}" >> $GITHUB_ENV
-        echo "{ENV_EXCLUDE}={${{ inputs.exclude }}}" >> $GITHUB_ENV
+        echo "ENV_IDENTIFIER=${{ inputs.identifier }}" >> $GITHUB_ENV
+        echo "ENV_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+        echo "ENV_DIRECTORY=${{ inputs.directory }}" >> $GITHUB_ENV
+        echo "ENV_EXCLUDE=${{ inputs.exclude }}" >> $GITHUB_ENV
         "${GITHUB_ACTION_PATH}"/snapshot_start.sh
       shell: bash
 branding:
