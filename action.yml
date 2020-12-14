@@ -55,7 +55,7 @@ runs:
         "${GITHUB_ACTION_PATH}"/cache_files.sh \
             system_files_snapshot_01.txt \
             system_files_snapshot_02.txt \
-            snapshot_new_files.txt
+            system_files_snapshot_new_files.txt
         ls -lha "${GITHUB_ACTION_PATH}"
         ls -lha "${ENV_CACHE}"
       shell: bash
