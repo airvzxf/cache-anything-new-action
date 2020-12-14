@@ -38,7 +38,7 @@ runs:
         ENV_SCRIPT_BASE: ${{ github.workspace }}/.github/workflows
         ENV_SEARCH: ${{ inputs.search }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
-      run: ./init.sh
+      run: "${GITHUB_ACTION_PATH}"/init.sh
       shell: bash
 branding:
   color: 'orange'
