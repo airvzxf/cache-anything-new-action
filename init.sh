@@ -22,18 +22,22 @@ echo "Directory ENV_SCRIPT_BASE: ${ENV_SCRIPT_BASE}"
 echo "----------------------------------------"
 ls -lha "${ENV_SCRIPT_BASE}"
 
-"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
+#"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
 
 echo "# ----------------------------------------------------------"
 echo "# Init the user script"
 echo "# ----------------------------------------------------------"
-"${ENV_SCRIPT}"
+#"${ENV_SCRIPT}"
 
-"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
+#"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
 
-"${GITHUB_ACTION_PATH}"/cache_files.sh \
-  system_files_snapshot_01.txt \
-  system_files_snapshot_02.txt \
-  system_files_snapshot_new_files.txt
+#"${GITHUB_ACTION_PATH}"/cache_files.sh \
+#  system_files_snapshot_01.txt \
+#  system_files_snapshot_02.txt \
+#  system_files_snapshot_new_files.txt
+
+ls -lha /home/runner/work/_temp/
+
+ls -lhaR /home/runner/work/_temp/
 
 echo "# ----------------------------------------------------------"
