@@ -36,9 +36,9 @@ echo "# ----------------------------------------------------------"
 #  system_files_snapshot_02.txt \
 #  system_files_snapshot_new_files.txt
 
-ls -lha /home/runner/work/_temp/
+ls -lha "${ENV_RUNNER_TEMP}"
 
-ls -lhaR /home/runner/work/_temp/
+ls -lhaR "${ENV_RUNNER_TEMP}"
 
 echo "# ----------------------------------------------------------"
 
