@@ -1,0 +1,8 @@
+{
+  "name": "cache-anything-new-action",
+  "version": "1.0.0",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/tool-cache": "^1.6.1"
+  }
+}

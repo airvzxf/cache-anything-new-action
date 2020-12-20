@@ -41,3 +41,7 @@ ls -lha /home/runner/work/_temp/
 ls -lhaR /home/runner/work/_temp/
 
 echo "# ----------------------------------------------------------"
+
+"${GITHUB_ACTION_PATH}"/cache_node.sh
+
+echo "# ----------------------------------------------------------"
