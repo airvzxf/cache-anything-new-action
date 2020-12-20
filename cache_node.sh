@@ -7,7 +7,7 @@ cp package.json package-lock.json cache.js "${ENV_RUNNER_TEMP}"actions-tool-cach
 cd "${ENV_RUNNER_TEMP}"actions-tool-cache/
 ls -lha ./
 npm install
-npm run-script cache.js
+ls -lhaR ./
 cd -
 
 set +xv
