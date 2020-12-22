@@ -12,8 +12,12 @@ npm run build --scripts-prepend-node-path=auto
 node build/Release/hello/index.js
 ls -lha "${ENV_SCRIPT_BASE}"/hello.txt
 cat "${ENV_SCRIPT_BASE}"/hello.txt
+printenv
 node build/Release/cache/index.js
 ls -lha ./
 cd -
+
+echo "ACTIONS_CACHE_URL: ${ACTIONS_CACHE_URL}"
+echo "ACTIONS_RUNTIME_URL: ${ACTIONS_RUNTIME_URL}"
 
 set +xv

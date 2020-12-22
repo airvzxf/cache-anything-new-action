@@ -1,6 +1,8 @@
 const core = require('@actions/core');
 const cache = require('@actions/cache');
 
+core.info("core.info")
+
 console.log(`core.isDebug(): ${core.isDebug()}`)
 
 const key = 'hello-v1.0.1'
