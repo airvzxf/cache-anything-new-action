@@ -63,7 +63,7 @@ async function run(): Promise<void> {
     console.log(`core.getState -> #02: ${core.getState('CACHE_RESULT')}`)
 }
 
-run().then(_ => console.log("Run -> Then()"));
+run().then(r => console.log(`Run -> Then(): ${r}`));
 
 export default run;
 
