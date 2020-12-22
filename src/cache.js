@@ -9,13 +9,6 @@ const paths = [
     '/home/runner/work/testing-actions-github/testing-actions-github/.github/workflows/hello.txt'
 ]
 
-const baseUrl: string = (
-    process.env['ACTIONS_CACHE_URL'] ||
-    process.env['ACTIONS_RUNTIME_URL'] ||
-    ''
-).replace('pipelines', 'artifactcache')
-console.log(`baseUrl: ${baseUrl}`)
-
 function restoreCache(paths, key, restoreKeys) {
     return cache.restoreCache(paths, key, restoreKeys)
 }
