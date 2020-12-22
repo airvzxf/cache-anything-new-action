@@ -13,10 +13,9 @@ echo "ENV_IDENTIFIER: ${ENV_IDENTIFIER}"
 node build/Release/hello/index.js
 ls -lha "${ENV_SCRIPT_BASE}"/hello.txt
 cat "${ENV_SCRIPT_BASE}"/hello.txt
-printenv
-#node build/Release/cache/index.js
-#node ./build/Release/restore/index.js
-#node ./build/Release/save/index.js
+#node ./build/Release/cache/index.js
+node ./build/Release/restore/index.js
+node ./build/Release/save/index.js
 ls -lha ./
 cd -
 
