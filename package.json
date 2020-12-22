@@ -8,7 +8,7 @@
     "url": "git+https://github.com/airvzxf/cache-anything-new-action"
   },
   "scripts": {
-    "build": "ncc build -o build/Release/hello src/hello.js && ncc build -o build/Release/cache src/cache.js && ncc build -o build/Release/restore src/restore.ts && ncc build -o build/Release/save src/save.ts"
+    "build": "ncc build -o build/Release/hello src/hello.ts && ncc build -o build/Release/cache src/cache.ts && ncc build -o build/Release/restore src/restore.ts && ncc build -o build/Release/save src/save.ts"
   },
   "dependencies": {
     "@actions/cache": "^1.0.5",

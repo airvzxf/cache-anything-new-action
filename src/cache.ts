@@ -1,5 +1,5 @@
-const core = require('@actions/core');
-const cache = require('@actions/cache');
+import * as cache from "@actions/cache";
+import * as core from "@actions/core";
 
 core.info("core.info")
 
