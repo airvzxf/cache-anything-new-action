@@ -1,64 +1,37 @@
-const tool_cache = require('@actions/tool-cache');
 const core = require('@actions/core');
+const cache = require('@actions/cache');
 
 console.log(`core.isDebug(): ${core.isDebug()}`)
 
-const allNodeVersions = tool_cache.findAllVersions('node');
-console.log(`Versions of node available: ${allNodeVersions}`);
+const paths = [
+    '/home/runner/work/testing-actions-github/testing-actions-github/.github/workflows/hello.txt'
+]
+const key = 'hello-v1.0.1'
 
-const nodeDirectory = tool_cache.find('node', '12.x', 'x64');
-core.addPath(nodeDirectory);
-console.log(`nodeDirectory: ${nodeDirectory}`)
-console.log(`core.getInput -> identifier: ${core.getInput('identifier')}`)
-console.log(`core.getInput -> version:    ${core.getInput('version')}`)
-console.log(`core.getInput -> cache:      ${core.getInput('cache')}`)
-console.log(`core.getInput -> script:     ${core.getInput('script')}`)
-console.log(`core.getInput -> snapshot:   ${core.getInput('snapshot')}`)
-console.log(`core.getInput -> exclude:    ${core.getInput('exclude')}`)
-console.log(`core.getState -> #01: ${core.getState('CACHE_KEY')}`)
-console.log(`core.getState -> #02: ${core.getState('CACHE_RESULT')}`)
-
-function cachedPathFunction() {
-    return tool_cache.cacheDir(nodeDirectory, 'node', '12.20.0');
+function restoreCache(paths, key) {
+    return cache.saveCache(paths, key)
 }
 
 (async () => {
+
     try {
-        const cachedPath = await cachedPathFunction();
-        console.log(`cachedPath: ${cachedPath}`);
-        core.addPath(cachedPath);
-
-        const nodeDirectory = tool_cache.find('node', '12.x', 'x64');
-        core.addPath(nodeDirectory);
-        console.log(`nodeDirectory: ${nodeDirectory}`)
-
-        const cachedFileFind = tool_cache.find('myShellName', '1.x');
-        core.addPath(cachedFileFind);
-        console.log(`cachedFileFind: ${cachedFileFind}`)
+        const cacheId = await restoreCache(paths, key)
+        console.log(`cacheID: ${cacheId}`)
     } catch (e) {
-        console.error(`Error in cachedPath: ${e}`)
+        console.error(`Error in restoreCache: ${e}`)
     }
 })();
 
-function cachedFileFunction() {
-    return tool_cache.cacheFile('/home/runner/work/testing-actions-github/testing-actions-github/.github/workflows/install.sh', 'target-install.sh', 'myShellName', '1.0.0');
+function saveCache(paths, key) {
+    return cache.saveCache(paths, key)
 }
 
 (async () => {
 
     try {
-        const cachedFile = await cachedFileFunction();
-        console.log(`cachedFile: ${cachedFile}`)
-        core.addPath(cachedFile);
-
-        const nodeDirectory = tool_cache.find('node', '12.x', 'x64');
-        core.addPath(nodeDirectory);
-        console.log(`nodeDirectory: ${nodeDirectory}`)
-
-        const cachedFileFind = tool_cache.find('myShellName', '1.x');
-        core.addPath(cachedFileFind);
-        console.log(`cachedFileFind: ${cachedFileFind}`)
+        const cacheId = await saveCache(paths, key)
+        console.log(`cacheID: ${cacheId}`)
     } catch (e) {
-        console.error(`Error in cachedFile: ${e}`)
+        console.error(`Error in saveCache: ${e}`)
     }
 })();

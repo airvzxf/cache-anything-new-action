@@ -1,6 +1,7 @@
 #!/bin/bash -exv
 
 pwd
+echo "${ENV_IDENTIFIER} ${ENV_VERSION}" > "${ENV_SCRIPT_BASE}"/hello.txt
 mkdir --parents "${ENV_RUNNER_TEMP}"/actions-tool-cache/
 cd "${GITHUB_ACTION_PATH}"
 cp --recursive ./* "${ENV_RUNNER_TEMP}"/actions-tool-cache/
