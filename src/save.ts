@@ -36,9 +36,10 @@ async function run(): Promise<void> {
             return;
         }
 
-        const cachePaths = utils.getInputAsArray(Inputs.Path, {
-            required: true
-        });
+        let cachePaths: string[];
+        // @ts-ignore
+        cachePaths = [process.env.ENV_CACHE];
+        // const cachePaths = utils.getInputAsArray(Inputs.Path, {required: true});
 
         try {
             await cache.saveCache(cachePaths, primaryKey, {

@@ -1,7 +1,7 @@
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
 
-import {Events, Inputs, State} from "./constants";
+import {Events, State} from "./constants";
 import * as utils from "./utils/actionUtils";
 
 async function run(): Promise<void> {
@@ -22,13 +22,18 @@ async function run(): Promise<void> {
             return;
         }
 
-        const primaryKey = core.getInput(Inputs.Key, {required: true});
+        let primaryKey: string;
+        // @ts-ignore
+        primaryKey = process.env.ENV_IDENTIFIER;
         core.saveState(State.CachePrimaryKey, primaryKey);
 
-        const restoreKeys = utils.getInputAsArray(Inputs.RestoreKeys);
-        const cachePaths = utils.getInputAsArray(Inputs.Path, {
-            required: true
-        });
+        let restoreKeys: string[];
+        restoreKeys = [primaryKey];
+        let cachePaths: string[];
+        // @ts-ignore
+        cachePaths = [process.env.ENV_CACHE];
+        // const restoreKeys = utils.getInputAsArray(Inputs.RestoreKeys);
+        // const cachePaths = utils.getInputAsArray(Inputs.Path, {required: true});
 
         try {
             const cacheKey = await cache.restoreCache(

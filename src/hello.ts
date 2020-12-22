@@ -1,7 +1,5 @@
-import * as core from "@actions/core";
-
 console.log(`Hello World!`);
 console.log(process.env)
 
-const nameToGreet = core.getInput('inputs.identifier');
+const nameToGreet = process.env.ENV_IDENTIFIER;
 console.log(`Hello ${nameToGreet}!`);
