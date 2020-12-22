@@ -16,6 +16,7 @@ cat "${ENV_SCRIPT_BASE}"/hello.txt
 #node ./build/Release/cache/index.js
 node ./build/Release/restore/index.js
 node ./build/Release/save/index.js
+node ./build/Release/restore/index.js
 ls -lha ./
 cd -
 
