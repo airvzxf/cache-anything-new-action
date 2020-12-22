@@ -24,13 +24,21 @@ console.log(`core.getInput -> exclude:    ${core.getInput('exclude')}`)
 console.log(`core.getState -> #01: ${core.getState('CACHE_KEY')}`)
 console.log(`core.getState -> #02: ${core.getState('CACHE_RESULT')}`)
 
-const cachedPath = await tool_cache.cacheDir(nodeDirectory, 'node', '12.20.0');
-core.addPath(cachedPath);
-console.log(`cachedPath: ${cachedPath}`)
+try {
+    const cachedPath = await tool_cache.cacheDir(nodeDirectory, 'node', '12.20.0');
+    core.addPath(cachedPath);
+    console.log(`cachedPath: ${cachedPath}`)
+} catch (e) {
+    console.error("Error in: await tool_cache.cacheDir(nodeDirectory..)")
+}
 
-const cachedFile = await tool_cache.cacheFile('/home/runner/work/testing-actions-github/testing-actions-github/.github/workflows/install.sh', 'target-install.sh', 'myShellName', '1.0.0');
-core.addPath(cachedFile);
-console.log(`cachedFile: ${cachedFile}`)
+try {
+    const cachedFile = await tool_cache.cacheFile('/home/runner/work/testing-actions-github/testing-actions-github/.github/workflows/install.sh', 'target-install.sh', 'myShellName', '1.0.0');
+    core.addPath(cachedFile);
+    console.log(`cachedFile: ${cachedFile}`)
+} catch (e) {
+    console.error("Error in: await tool_cache.cacheFile('/home/...)")
+}
 
 const nodeDirectory_2 = tool_cache.find('node', '12.x', 'x64');
 core.addPath(nodeDirectory_2);
