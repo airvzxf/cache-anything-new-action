@@ -9,13 +9,14 @@ cd "${ENV_RUNNER_TEMP}"/actions-tool-cache/
 ls -lha ./
 npm install --scripts-prepend-node-path=auto
 npm run build --scripts-prepend-node-path=auto
+echo "inputs.identifier: ${{ inputs.identifier }}"
 node build/Release/hello/index.js
 ls -lha "${ENV_SCRIPT_BASE}"/hello.txt
 cat "${ENV_SCRIPT_BASE}"/hello.txt
 printenv
 #node build/Release/cache/index.js
-node ./build/Release/restore/index.js
-node ./build/Release/save/index.js
+#node ./build/Release/restore/index.js
+#node ./build/Release/save/index.js
 ls -lha ./
 cd -
 
