@@ -10,6 +10,8 @@ ls -lha ./
 npm install --scripts-prepend-node-path=auto
 npm run build --scripts-prepend-node-path=auto
 node build/Release/hello/index.js
+ls -lha "${ENV_SCRIPT_BASE}"/hello.txt
+cat "${ENV_SCRIPT_BASE}"/hello.txt
 node build/Release/cache/index.js
 ls -lha ./
 cd -
