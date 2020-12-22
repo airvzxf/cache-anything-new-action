@@ -14,12 +14,11 @@ function restoreCache(paths, key, restoreKeys) {
 }
 
 (async () => {
-
     try {
         const cacheId = await restoreCache(paths, key, restoreKeys)
         console.log(`cacheID: ${cacheId}`)
-    } catch (e) {
-        console.error(`Error in restoreCache #1: ${e}`)
+    } catch (error) {
+        console.error(`Error in restoreCache #1: ${error}`)
     }
 })();
 
@@ -28,17 +27,26 @@ function saveCache(paths, key) {
 }
 
 (async () => {
-
     try {
+        const cacheKey = core.getState("CACHE_RESULT");
+        if (cacheKey) {
+            core.debug(`Cache state/key: ${cacheKey}`);
+        } else {
+            console.error(`Not Cache Result found.`)
+            return;
+        }
+        if (cacheKey && cacheKey.localeCompare(key, undefined, {sensitivity: "accent"}) === 0) {
+            console.error(`Cache hit occurred on the primary key ${key}, not saving cache.`);
+            return;
+        }
         const cacheId = await saveCache(paths, key)
         console.log(`cacheID: ${cacheId}`)
-    } catch (e) {
-        console.error(`Error in saveCache #2: ${e}`)
+    } catch (error) {
+        console.error(`Error in saveCache #2: ${error}`)
     }
 })();
 
 (async () => {
-
     try {
         const cacheId = await restoreCache(paths, key, restoreKeys)
         console.log(`cacheID: ${cacheId}`)
