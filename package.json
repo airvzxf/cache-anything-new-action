@@ -1,8 +1,20 @@
 {
   "name": "cache-anything-new-action",
   "version": "1.0.0",
+  "author": "Israel Roldan",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/airvzxf/cache-anything-new-action"
+  },
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/tool-cache": "^1.6.1"
+  },
+  "scripts": {
+    "build": "ncc build -o build/Release/hello src/hello.js && ncc build -o build/Release/cache src/cache.js"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.26.1"
   }
 }
