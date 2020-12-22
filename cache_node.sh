@@ -20,7 +20,4 @@ node ./build/Release/restore/index.js
 ls -lha ./
 cd -
 
-echo "ACTIONS_CACHE_URL: ${ACTIONS_CACHE_URL}"
-echo "ACTIONS_RUNTIME_URL: ${ACTIONS_RUNTIME_URL}"
-
 set +xv

@@ -26,6 +26,7 @@ async function run(): Promise<void> {
         // @ts-ignore
         primaryKey = process.env.ENV_IDENTIFIER;
         core.saveState(State.CachePrimaryKey, primaryKey);
+        console.log(`#1 core.getState(State.CachePrimaryKey): ${core.getState(State.CachePrimaryKey)}`)
 
         let restoreKeys: string[];
         restoreKeys = [primaryKey];
