@@ -7,18 +7,19 @@ const paths = [
     '/home/runner/work/testing-actions-github/testing-actions-github/.github/workflows/hello.txt'
 ]
 const key = 'hello-v1.0.1'
+const restoreKeys = ['hello-']
 
-function restoreCache(paths, key) {
-    return cache.saveCache(paths, key)
+function restoreCache(paths, key, restoreKeys) {
+    return cache.saveCache(paths, key, restoreKeys)
 }
 
 (async () => {
 
     try {
-        const cacheId = await restoreCache(paths, key)
+        const cacheId = await restoreCache(paths, key, restoreKeys)
         console.log(`cacheID: ${cacheId}`)
     } catch (e) {
-        console.error(`Error in restoreCache: ${e}`)
+        console.error(`Error in restoreCache #1: ${e}`)
     }
 })();
 
@@ -32,6 +33,16 @@ function saveCache(paths, key) {
         const cacheId = await saveCache(paths, key)
         console.log(`cacheID: ${cacheId}`)
     } catch (e) {
-        console.error(`Error in saveCache: ${e}`)
+        console.error(`Error in saveCache #2: ${e}`)
+    }
+})();
+
+(async () => {
+
+    try {
+        const cacheId = await restoreCache(paths, key, restoreKeys)
+        console.log(`cacheID: ${cacheId}`)
+    } catch (e) {
+        console.error(`Error in restoreCache #3: ${e}`)
     }
 })();
