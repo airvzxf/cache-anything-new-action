@@ -25,7 +25,7 @@ ls -lha "${ENV_SCRIPT_BASE}"
 echo "# ----------------------------------------------------------"
 echo "# Create the first snapshot"
 echo "# ----------------------------------------------------------"
-#"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_01.txt
+#"${GITHUB_ACTION_PATH}"/src/snapshot.sh system_files_snapshot_01.txt
 
 echo "# ----------------------------------------------------------"
 echo "# Init the user script"
@@ -35,12 +35,12 @@ echo "# ----------------------------------------------------------"
 echo "# ----------------------------------------------------------"
 echo "# Create the second snapshot after of the user changes"
 echo "# ----------------------------------------------------------"
-#"${GITHUB_ACTION_PATH}"/snapshot.sh system_files_snapshot_02.txt
+#"${GITHUB_ACTION_PATH}"/src/snapshot.sh system_files_snapshot_02.txt
 
 echo "# ----------------------------------------------------------"
 echo "# Compare the differences and save in the cache directory"
 echo "# ----------------------------------------------------------"
-#"${GITHUB_ACTION_PATH}"/cache_files.sh \
+#"${GITHUB_ACTION_PATH}"/src/cache_files.sh \
 #  system_files_snapshot_01.txt \
 #  system_files_snapshot_02.txt \
 #  system_files_snapshot_new_files.txt
@@ -49,6 +49,6 @@ echo "# ----------------------------------------------------------"
 echo "# Store the cache in GitHub"
 echo "# ----------------------------------------------------------"
 
-"${GITHUB_ACTION_PATH}"/cache_node.sh
+"${GITHUB_ACTION_PATH}"/src/cache_node.sh
 
 echo "# ----------------------------------------------------------"
