@@ -1,5 +1,5 @@
-import * as cache from "@actions/cache";
-import * as core from "@actions/core";
+const cache = require("@actions/cache");
+const core = require("@actions/core");
 
 core.info("core.info")
 
@@ -30,17 +30,6 @@ function saveCache(paths, key) {
 
 (async () => {
     try {
-        // const cacheKey = core.getState("CACHE_RESULT");
-        // if (cacheKey) {
-        //     core.debug(`Cache state/key: ${cacheKey}`);
-        // } else {
-        //     console.error(`Not Cache Result found.`)
-        //     return;
-        // }
-        // if (cacheKey && cacheKey.localeCompare(key, undefined, {sensitivity: "accent"}) === 0) {
-        //     console.error(`Cache hit occurred on the primary key ${key}, not saving cache.`);
-        //     return;
-        // }
         const cacheId = await saveCache(paths, key)
         console.log(`cacheID: ${cacheId}`)
     } catch (error) {
