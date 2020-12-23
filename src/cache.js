@@ -1,4 +1,4 @@
-const cache = require("@actions/cache");
+const cache = require("@airvzxf/cache");
 const core = require("@actions/core");
 
 core.info("core.info")
