@@ -13,20 +13,28 @@ echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
 echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
 echo "ENV_IS_CACHED:      ${ENV_IS_CACHED}"
 
-echo "----------------------------------------"
-echo "Directory GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
-echo "----------------------------------------"
+if [ "${ENV_IS_CACHED}" = "true" ]; then
+  echo "# ----------------------------------------------------------"
+  echo "# The cache exists. Exit from this script."
+  echo "# ----------------------------------------------------------"
+  ls -lha ./
+  exit 0
+fi
+
+echo "# ----------------------------------------"
+echo "# Directory GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
+echo "# ----------------------------------------"
 ls -lha "${GITHUB_ACTION_PATH}"
 
-echo "----------------------------------------"
-echo "Directory ENV_SCRIPT_BASE: ${ENV_SCRIPT_BASE}"
-echo "----------------------------------------"
+echo "# ----------------------------------------"
+echo "# Directory ENV_SCRIPT_BASE: ${ENV_SCRIPT_BASE}"
+echo "# ----------------------------------------"
 ls -lha "${ENV_SCRIPT_BASE}"
 
 echo "# ----------------------------------------------------------"
 echo "# Create the first snapshot"
 echo "# ----------------------------------------------------------"
-#"${GITHUB_ACTION_PATH}"/src/snapshot.sh system_files_snapshot_01.txt
+"${GITHUB_ACTION_PATH}"/src/snapshot.sh system_files_snapshot_01.txt
 
 echo "# ----------------------------------------------------------"
 echo "# Init the user script"
@@ -36,16 +44,14 @@ echo "# ----------------------------------------------------------"
 echo "# ----------------------------------------------------------"
 echo "# Create the second snapshot after of the user changes"
 echo "# ----------------------------------------------------------"
-#"${GITHUB_ACTION_PATH}"/src/snapshot.sh system_files_snapshot_02.txt
+"${GITHUB_ACTION_PATH}"/src/snapshot.sh system_files_snapshot_02.txt
 
 echo "# ----------------------------------------------------------"
 echo "# Compare the differences and save in the cache directory"
 echo "# ----------------------------------------------------------"
-#"${GITHUB_ACTION_PATH}"/src/cache_files.sh \
-#  system_files_snapshot_01.txt \
-#  system_files_snapshot_02.txt \
-#  system_files_snapshot_new_files.txt
+"${GITHUB_ACTION_PATH}"/src/cache_files.sh \
+  system_files_snapshot_01.txt \
+  system_files_snapshot_02.txt \
+  system_files_snapshot_new_files.txt
 
-echo "# ----------------------------------------------------------"
-echo "ENV_IS_CACHED: ${ENV_IS_CACHED}"
 echo "# ----------------------------------------------------------"
