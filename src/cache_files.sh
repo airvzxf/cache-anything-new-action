@@ -38,6 +38,6 @@ ls -lha "${ENV_CACHE}"
 echo "----------------------------------------"
 echo "List all the cached files"
 echo "----------------------------------------"
-sudo du -h "${ENV_CACHE}"
+sudo du -h -d 3 "${ENV_CACHE}"
 
 echo "# ----------------------------------------------------------"
