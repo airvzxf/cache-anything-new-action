@@ -38,7 +38,7 @@ runs:
         ENV_SCRIPT_BASE: ${{ github.workspace }}/.github/workflows
         ENV_SNAPSHOT: ${{ inputs.snapshot }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
-        ENV_IS_CACHED: ${{ steps.}}${{ inputs.identifier }}${{.outputs.cache-hit }}
+        ENV_IS_CACHED: ${{ toJson(steps) }}
       run: ${GITHUB_ACTION_PATH}/src/init.sh
       shell: bash
 branding:
