@@ -23,7 +23,7 @@ echo "Hello World!" > hello.txt
 Add the action in `.github/workflows/your_action.yml`.
 
 ```yaml
-- uses: airvzxf/cache-anything-new-action@main
+- uses: airvzxf/cache-anything-new-action@v1.0
   with:
     script: 'install.sh'
     is_cached: ${{ steps.cache-id.outputs.cache-hit }}
@@ -51,7 +51,7 @@ jobs:
           path: ${{ runner.temp }}/cache-directory-example
           key: ${{ runner.os }}-cache-hello-world-key-v1.9
       # Required action
-      - uses: airvzxf/cache-anything-new-action@main
+      - uses: airvzxf/cache-anything-new-action@v1.0
         with:
           script: 'install.sh'
           is_cached: ${{ steps.cache-id.outputs.cache-hit }}
@@ -107,7 +107,7 @@ jobs:
           path: ${{ runner.temp }}/cache-directory-example
           key: ${{ runner.os }}-cache-hello-world-key-v1.9
       # Required action
-      - uses: airvzxf/cache-anything-new-action@main
+      - uses: airvzxf/cache-anything-new-action@v1.0
         with:
           script: 'install.sh'
           is_cached: ${{ steps.cache-id.outputs.cache-hit }}
