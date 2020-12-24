@@ -15,7 +15,7 @@ if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
   echo "# Restore the cache"
   echo "# ----------------------------------------------------------"
-  sudo cp --verbose --force --recursive "${ENV_CACHE}"/. "${ENV_SNAPSHOT}"
+  sudo cp --force --recursive "${ENV_CACHE}"/. "${ENV_SNAPSHOT}"
   sudo rm -fR "${ENV_CACHE}"
   exit 0
 fi
