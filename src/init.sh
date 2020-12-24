@@ -11,6 +11,7 @@ echo "ENV_SNAPSHOT:       ${ENV_SNAPSHOT}"
 echo "ENV_EXCLUDE:        ${ENV_EXCLUDE}"
 echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
 echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
+echo "ENV_IS_CACHED:      ${ENV_IS_CACHED}"
 
 echo "----------------------------------------"
 echo "Directory GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
