@@ -17,10 +17,10 @@ if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# Restore the cache"
   echo "# ----------------------------------------------------------"
   whereis pandoc || true
-  find /home/ -iname hello.txt 2> /dev/null || true
-  cp --verbose --force --recursive "${ENV_CACHE}"/. "${ENV_SNAPSHOT}"
-  rm -fR "${ENV_CACHE}"
-  find /home/ -iname hello.txt 2> /dev/null || true
+  sudo find /home/ -iname hello.txt 2> /dev/null || true
+  sudo cp --verbose --force --recursive "${ENV_CACHE}"/. "${ENV_SNAPSHOT}"
+  sudo rm -fR "${ENV_CACHE}"
+  sudo find /home/ -iname hello.txt 2> /dev/null || true
   exit 0
 fi
 
