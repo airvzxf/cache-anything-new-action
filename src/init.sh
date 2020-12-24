@@ -18,6 +18,7 @@ if [ "${ENV_IS_CACHED}" = "true" ]; then
   whereis pandoc || true
   find /home/ -iname hello.txt 2> /dev/null || true
   cp --verbose --force --recursive "${ENV_CACHE}"/. "${ENV_SNAPSHOT}"
+  rm -fR "${ENV_CACHE}"
   find /home/ -iname hello.txt 2> /dev/null || true
   exit 0
 fi
