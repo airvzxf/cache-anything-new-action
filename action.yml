@@ -11,6 +11,9 @@ inputs:
     description: 'The version is an easy way to create a new cache or come back to a previous.'
     required: false
     default: 'v1.0'
+  is_cached:
+    description: 'Boolean value to check if the key is cached.'
+    required: true
   cache:
     description: 'Path of the cache directory.'
     required: false
@@ -38,7 +41,7 @@ runs:
         ENV_SCRIPT_BASE: ${{ github.workspace }}/.github/workflows
         ENV_SNAPSHOT: ${{ inputs.snapshot }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
-        ENV_IS_CACHED: ${{ toJson(steps) }}
+        ENV_IS_CACHED: ${{ inputs.is_cached }}
       run: ${GITHUB_ACTION_PATH}/src/init.sh
       shell: bash
 branding:
