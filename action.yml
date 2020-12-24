@@ -29,7 +29,7 @@ runs:
     - env:
         ENV_IS_CACHED: ${{ inputs.is_cached }}
         ENV_RUNNER_TEMP: ${{ runner.temp }}
-        ENV_CACHE: ${{ runner.temp }}/${{ inputs.cache }}
+        ENV_CACHE: ${{ inputs.cache }}
         ENV_SCRIPT_BASE: ${{ github.workspace }}/.github/workflows
         ENV_SCRIPT: ${{ github.workspace }}/.github/workflows/${{ inputs.script }}
         ENV_SNAPSHOT: ${{ inputs.snapshot }}

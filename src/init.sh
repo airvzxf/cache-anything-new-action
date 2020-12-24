@@ -11,7 +11,6 @@ echo "ENV_EXCLUDE:        ${ENV_EXCLUDE}"
 echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
 echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
 
-
 if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
   echo "# Restore the cache"
@@ -48,7 +47,4 @@ echo "# ----------------------------------------------------------"
   system_files_snapshot_02.txt \
   system_files_snapshot_new_files.txt
 
-echo "# ----------------------------------------------------------"
-pwd
-cat "${ENV_RUNNER_TEMP}"/system_files_snapshot_new_files.txt
 echo "# ----------------------------------------------------------"
