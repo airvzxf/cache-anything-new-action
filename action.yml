@@ -5,21 +5,20 @@ description: >-
 
 inputs:
   script:
-    description: 'Bash script which will be executed and cached.'
+    description: 'Create your bash script to execute the commands. They will be generated files and it will stored in the cached.'
     required: true
   is_cached:
-    description: 'Boolean value to check if the key is cached.'
+    description: 'Boolean value to check if the cache was created.'
     required: true
   cache:
-    description: 'Path of the cache directory.'
-    required: false
-    default: './cache-directory'
+    description: 'directory where the new detected files will be stored. It should be the same as the `actions/cache` `path`.'
+    required: true
   snapshot:
-    description: 'The snapshot will be created from this path, recommended the main path (/).'
+    description: 'The path of the scanner entry point, recommended the main path (/).'
     required: false
     default: '/'
   exclude:
-    description: 'Exclude directories and files from the indexation. Separate with spaces ( ).'
+    description: 'Exclude directories or files during the scanner. Separate with spaces ( ).'
     required: false
     default: '/boot /data /dev /mnt /proc /run /sys'
 
