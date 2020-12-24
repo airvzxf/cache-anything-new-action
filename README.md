@@ -23,6 +23,18 @@ echo "Hello World!" > hello.txt
 Add the action in `.github/workflows/your_action.yml`.
 
 ```yaml
+- uses: airvzxf/cache-anything-new-action@main
+  with:
+    script: 'install.sh'
+    is_cached: ${{ steps.cache-id.outputs.cache-hit }}
+    cache: ${{ runner.temp }}/cache-directory-example
+    snapshot: '/'
+    exclude: '/boot /data /dev /mnt /proc /run /sys'
+```
+
+The complete example:
+
+```yaml
 name: CI - Testing Cache Anything New | Action
 on:
   workflow_dispatch:
@@ -61,6 +73,10 @@ I created a dummy example here:
 - [Action: Workflow][actions]
 
 ## Settings
+
+The `uses: actions/cache` is required because it needs this external action to store the cache,
+the `cache anything action` only find the new created files and store in a temporal directory which will be cached
+by `actions/cache`.
 
 Option | Description | Required | Default | Example
 ---    | ---         | ---      | ---     | ---
