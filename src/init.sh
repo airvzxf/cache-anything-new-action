@@ -13,7 +13,7 @@ echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
 
 if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
-  echo "# The cache exists. Exit from this script."
+  echo "# Restore the cache"
   echo "# ----------------------------------------------------------"
   whereis pandoc || true
   find /home/ -iname hello.txt 2> /dev/null || true
