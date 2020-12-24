@@ -1,8 +1,6 @@
 const cache = require("@airvzxf/cache");
 const core = require("@actions/core");
 
-core.info("core.info")
-
 console.log(`core.isDebug(): ${core.isDebug()}`)
 
 const key = 'hello-v1.0.1'

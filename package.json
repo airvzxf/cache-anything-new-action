@@ -11,7 +11,7 @@
     "build": "ncc build -o build/Release/hello src/hello.js && ncc build -o build/Release/cache src/cache.js"
   },
   "dependencies": {
-    "@airvzxf/cache": "^1.0.3",
+    "@airvzxf/cache": "^1.0.4",
     "@actions/core": "^1.2.6"
   },
   "devDependencies": {
