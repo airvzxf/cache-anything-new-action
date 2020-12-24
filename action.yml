@@ -13,7 +13,7 @@ inputs:
   cache:
     description: 'Path of the cache directory.'
     required: false
-    default: 'cache-directory'
+    default: './cache-directory'
   snapshot:
     description: 'The snapshot will be created from this path, recommended the main path (/).'
     required: false
