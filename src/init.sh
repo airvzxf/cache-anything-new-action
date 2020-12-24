@@ -21,6 +21,7 @@ if [ "${ENV_IS_CACHED}" = "true" ]; then
   sudo cp --verbose --force --recursive "${ENV_CACHE}"/. "${ENV_SNAPSHOT}"
   sudo rm -fR "${ENV_CACHE}"
   sudo find /home/ -iname hello.txt 2> /dev/null || true
+  whereis pandoc || true
   exit 0
 fi
 
