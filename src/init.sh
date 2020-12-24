@@ -17,18 +17,9 @@ if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
   whereis pandoc || true
   find /home/ -iname hello.txt 2> /dev/null || true
+  cp --verbose --force --recursive "${ENV_CACHE}"/. "${ENV_SNAPSHOT}"
   exit 0
 fi
-
-echo "# ----------------------------------------"
-echo "# Directory GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
-echo "# ----------------------------------------"
-ls -lha "${GITHUB_ACTION_PATH}"
-
-echo "# ----------------------------------------"
-echo "# Directory ENV_SCRIPT_BASE: ${ENV_SCRIPT_BASE}"
-echo "# ----------------------------------------"
-ls -lha "${ENV_SCRIPT_BASE}"
 
 echo "# ----------------------------------------------------------"
 echo "# Create the first snapshot"
