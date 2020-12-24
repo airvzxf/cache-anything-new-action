@@ -2,6 +2,7 @@ name: 'Cache Anything New'
 author: 'Israel Roldan <israel.alberto.rv@gmail.com>'
 description: >-
   Catch a series of commands then it will check for the new files generated and it should cache those.
+
 inputs:
   script:
     description: 'Bash script which will be executed and cached.'
@@ -21,6 +22,7 @@ inputs:
     description: 'Exclude directories and files from the indexation. Separate with spaces ( ).'
     required: false
     default: '/boot /data /dev /mnt /proc /run /sys'
+
 runs:
   using: 'composite'
   steps:
@@ -34,6 +36,7 @@ runs:
         ENV_EXCLUDE: ${{ inputs.exclude }}
       run: ${GITHUB_ACTION_PATH}/src/init.sh
       shell: bash
+
 branding:
   color: 'orange'
   icon: 'archive'

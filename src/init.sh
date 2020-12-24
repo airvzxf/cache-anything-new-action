@@ -11,6 +11,7 @@ echo "ENV_EXCLUDE:        ${ENV_EXCLUDE}"
 echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
 echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
 
+
 if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
   echo "# Restore the cache"
