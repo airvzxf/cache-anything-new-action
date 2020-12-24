@@ -17,11 +17,8 @@ if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
   echo "# The cache exists. Exit from this script."
   echo "# ----------------------------------------------------------"
-  ls -lha "${ENV_SNAPSHOT}"
-  ls -lha "${ENV_SCRIPT}"
-  ls -lha "${ENV_CACHE}"
-  ls -lha "${ENV_RUNNER_TEMP}"
-  ls -lha "${GITHUB_ACTION_PATH}"
+  whereis pandoc
+  find /home/ -iname hello.txt 2> /dev/null || true
   exit 0
 fi
 
