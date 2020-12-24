@@ -119,6 +119,14 @@ jobs:
           whereis pandoc || true
 ```
 
+## To-Do's
+
+General:
+
+- Add input `post_install` which try to emulate the basic triggers after the installation (Running post-transaction
+  hooks). Maybe added a `post-install.sh` script which execute some `systemctl restart` stuff, the user can run anything
+  if the validation of the existed cache is true.
+
 [StackOverflowPost]: https://stackoverflow.com/a/65274407/1727383
 
 [GitHubSecrets]: https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
