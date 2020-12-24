@@ -3,24 +3,16 @@ author: 'Israel Roldan <israel.alberto.rv@gmail.com>'
 description: >-
   Catch a series of commands then it will check for the new files generated and it should cache those.
 inputs:
-  identifier:
-    description: 'Unique alias to identify this cache.'
-    required: false
-    default: 'cache-anything-new'
-  version:
-    description: 'The version is an easy way to create a new cache or come back to a previous.'
-    required: false
-    default: 'v1.0'
+  script:
+    description: 'Bash script which will be executed and cached.'
+    required: true
   is_cached:
     description: 'Boolean value to check if the key is cached.'
     required: true
   cache:
     description: 'Path of the cache directory.'
     required: false
-    default: './snapshot'
-  script:
-    description: 'Bash script which will be executed and cached.'
-    required: true
+    default: 'cache-directory'
   snapshot:
     description: 'The snapshot will be created from this path, recommended the main path (/).'
     required: false
@@ -33,15 +25,13 @@ runs:
   using: 'composite'
   steps:
     - env:
-        ENV_IDENTIFIER: ${{ inputs.identifier }}
-        ENV_VERSION: ${{ inputs.version }}
+        ENV_IS_CACHED: ${{ inputs.is_cached }}
         ENV_RUNNER_TEMP: ${{ runner.temp }}
         ENV_CACHE: ${{ runner.temp }}/${{ inputs.cache }}
-        ENV_SCRIPT: ${{ github.workspace }}/.github/workflows/${{ inputs.script }}
         ENV_SCRIPT_BASE: ${{ github.workspace }}/.github/workflows
+        ENV_SCRIPT: ${{ github.workspace }}/.github/workflows/${{ inputs.script }}
         ENV_SNAPSHOT: ${{ inputs.snapshot }}
         ENV_EXCLUDE: ${{ inputs.exclude }}
-        ENV_IS_CACHED: ${{ inputs.is_cached }}
       run: ${GITHUB_ACTION_PATH}/src/init.sh
       shell: bash
 branding:

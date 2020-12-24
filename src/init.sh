@@ -3,15 +3,13 @@
 echo "# ----------------------------------------------------------"
 echo "# Init the process"
 echo "# ----------------------------------------------------------"
-echo "ENV_IDENTIFIER:     ${ENV_IDENTIFIER}"
-echo "ENV_VERSION:        ${ENV_VERSION}"
+echo "ENV_IS_CACHED:      ${ENV_IS_CACHED}"
 echo "ENV_CACHE:          ${ENV_CACHE}"
 echo "ENV_SCRIPT:         ${ENV_SCRIPT}"
 echo "ENV_SNAPSHOT:       ${ENV_SNAPSHOT}"
 echo "ENV_EXCLUDE:        ${ENV_EXCLUDE}"
 echo "ENV_RUNNER_TEMP:    ${ENV_RUNNER_TEMP}"
 echo "GITHUB_ACTION_PATH: ${GITHUB_ACTION_PATH}"
-echo "ENV_IS_CACHED:      ${ENV_IS_CACHED}"
 
 if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
