@@ -21,10 +21,6 @@ inputs:
     description: 'Exclude directories and files from the indexation. Separate with spaces ( ).'
     required: false
     default: '/boot /data /dev /mnt /proc /run /sys'
-  temporal:
-    description: 'DELETE ME.'
-    required: false
-    default: 'O.O'
 runs:
   using: 'composite'
   steps:
