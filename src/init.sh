@@ -17,7 +17,7 @@ if [ "${ENV_IS_CACHED}" = "true" ]; then
   echo "# ----------------------------------------------------------"
   echo "# The cache exists. Exit from this script."
   echo "# ----------------------------------------------------------"
-  whereis pandoc
+  whereis pandoc || true
   find /home/ -iname hello.txt 2> /dev/null || true
   exit 0
 fi
