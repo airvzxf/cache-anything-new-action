@@ -110,7 +110,11 @@ that packages install with their original dates are still found, and why files t
 existed but were modified (such as `/var/lib/dpkg/status` or `/etc/passwd`) are cached too.
 
 The scan stays on the file system of `path` (`find -xdev`), so mounted disks such as `/mnt`
-and the container's bind mounts are left out.
+and the container's bind mounts are left out. The directories below the second level are
+scanned by several `find` processes at once, because reading file metadata is bound by disk
+latency. Archived paths are relative to `/`, so files are always restored where they were
+found. The log lists the largest directories and files in the archive, which helps to spot
+paths worth excluding.
 
 ### Cache key
 
@@ -149,8 +153,9 @@ These paths are never scanned. Add your own with `exclude`.
 - **Background writes are cached too.** Anything another process changes between start and
   end is archived. Add such paths to `exclude`.
 - **The scan reads the metadata of every file under `path`.** Hosted runner images hold
-  millions of files, so a scan of `/` can take minutes. Use a narrower `path` when you know
-  where the files go.
+  millions of files; in this repository's tests a scan of `/` takes about 1–2 minutes on
+  `ubuntu-24.04` and under a minute on `ubuntu-24.04-arm`. Use a narrower `path` when you
+  know where the files go.
 
 ## Security
 
