@@ -258,10 +258,11 @@ cmd_restore() {
   check_requirements
   tar_metadata_flags
 
-  echo "::group::Restoring $(du -h "${STATE_ARCHIVE}" | cut -f1) into ${STATE_PATH}"
+  # Member names are relative to /, whatever the scan path was.
+  echo "::group::Restoring $(du -h "${STATE_ARCHIVE}" | cut -f1) of files under ${STATE_PATH}"
   "${AS_ROOT[@]}" tar --extract \
     --file "${STATE_ARCHIVE}" \
-    --directory "${STATE_PATH}" \
+    --directory / \
     --same-owner --same-permissions --keep-directory-symlink \
     "${TAR_FLAGS[@]}"
   echo "::endgroup::"
@@ -274,6 +275,61 @@ cmd_restore() {
   write_state "${STATE_DIR}" \
     "key=${STATE_KEY}" "path=${STATE_PATH}" "archive=${STATE_ARCHIVE}" "hit=true"
   output cache-hit true
+}
+
+# Writes the absolute paths of every entry under the scan path whose change time is newer than
+# the marker, NUL-separated, to $1. Errors go to $2.
+#
+# Reading the metadata of millions of files is bound by disk latency, not CPU, so the tree is
+# split at the second level (/usr/lib, /opt/hostedtoolcache, ...) and the parts are scanned
+# by several find processes at once. The entries of the first two levels are checked first.
+scan_changes() {
+  local list="$1" errors="$2"
+  local marker="${STATE_DIR}/marker" parts="${STATE_DIR}/parts"
+  local -a excluded=() prune=() select=()
+  local item
+
+  mapfile -t excluded <"${STATE_DIR}/excludes"
+  for item in "${excluded[@]}"; do
+    prune+=(-path "${item}" -o)
+  done
+  prune+=(-false)
+  select=(\( -type f -o -type l -o -type d \) -cnewer "${marker}" -printf '%p\0')
+
+  rm -rf "${parts}"
+  mkdir -p "${parts}"
+  : >"${errors}"
+
+  # Levels 1 and 2: the entries themselves, and the directories to scan below them.
+  "${AS_ROOT[@]}" find "${STATE_PATH}" -xdev -mindepth 1 -maxdepth 2 \
+    \( "${prune[@]}" \) -prune -o "${select[@]}" \
+    >"${parts}/shallow" 2>>"${errors}" || true
+  local device
+  device="$(stat -c '%d' "${STATE_PATH}")"
+  local -a dirs=()
+  local record
+  while IFS= read -r -d '' record; do
+    # Each record is "<device>/<absolute path>". Skip mount points of other file systems,
+    # like find -xdev does.
+    [[ "${record%%/*}" == "${device}" ]] && dirs+=("/${record#*/}")
+  done < <("${AS_ROOT[@]}" find "${STATE_PATH}" -xdev -mindepth 2 -maxdepth 2 \
+    \( "${prune[@]}" \) -prune -o -type d -printf '%D%p\0' 2>>"${errors}" || true)
+
+  # Below level 2: one find per directory, several at a time, each into its own file.
+  local jobs
+  jobs=$(($(nproc) * 4))
+  ((jobs <= 32)) || jobs=32
+  if ((${#dirs[@]} > 0)); then
+    # shellcheck disable=SC2016 # expanded by the child bash
+    printf '%s\0' "${dirs[@]}" |
+      "${AS_ROOT[@]}" xargs -0 -n 1 -P "${jobs}" bash -c \
+        'out="$1"; shift; dir="${!#}"; set -- "${@:1:$#-1}"; exec find "${dir}" "$@" >>"${out}/deep.$$"' \
+        _ "${parts}" -xdev -mindepth 1 \( "${prune[@]}" \) -prune -o "${select[@]}" \
+        2>>"${errors}" || true
+  fi
+
+  cat "${parts}"/* >"${list}"
+  "${AS_ROOT[@]}" rm -rf "${parts}"
 }
 
 cmd_collect() {
@@ -290,25 +346,15 @@ cmd_collect() {
   init_privileges
   tar_metadata_flags
 
-  local -a excluded=() prune=()
-  mapfile -t excluded <"${STATE_DIR}/excludes"
-  local item
-  for item in "${excluded[@]}"; do
-    prune+=(-path "${item}" -o)
-  done
-  prune+=(-false)
-
   local list="${STATE_DIR}/files.list" errors="${STATE_DIR}/find.err"
   echo "::group::Scanning ${STATE_PATH} for files created or changed since the start"
-  local status=0
-  "${AS_ROOT[@]}" find "${STATE_PATH}" -xdev -mindepth 1 \
-    \( "${prune[@]}" \) -prune -o \
-    \( -type f -o -type l -o -type d \) -cnewer "${STATE_DIR}/marker" -printf '%P\0' \
-    >"${list}" 2>"${errors}" || status=$?
-  if [[ "${status}" -ne 0 ]]; then
+  local started="${SECONDS}"
+  scan_changes "${list}" "${errors}"
+  if [[ -s "${errors}" ]]; then
     warn "find reported $(wc -l <"${errors}") error(s) while scanning; see the log."
     cat "${errors}" >&2
   fi
+  echo "Scan time: $((SECONDS - started)) s."
 
   local count
   count="$(tr -cd '\0' <"${list}" | wc -c)"
@@ -322,7 +368,7 @@ cmd_collect() {
   status=0
   "${AS_ROOT[@]}" tar --create \
     --file "${STATE_ARCHIVE}" \
-    --directory "${STATE_PATH}" \
+    --directory / \
     --no-recursion --ignore-failed-read \
     "${TAR_FLAGS[@]}" \
     --null --files-from "${list}" || status=$?
