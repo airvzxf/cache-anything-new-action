@@ -53,11 +53,20 @@ jobs:
         env:
           HIT: ${{ steps.single.outputs.cache-hit || steps.start.outputs.cache-hit }}
           FILES: ${{ steps.single.outputs.files || steps.end.outputs.files }}
+          KEY: ${{ steps.single.outputs.key || steps.start.outputs.key }}
         run: |
           test "${HIT}" = false
           test "${FILES}" -gt 0
           echo "Archived ${FILES} entries."
+          printf '%s\n' "${KEY}" > "${RUNNER_TEMP}/expected-key"
       - run: bash tests/verify.sh
+
+      # Hand the key to the hit job, which can then tell a broken restore from a runner that
+      # got a different image build (the key includes the image, so a miss is correct there).
+      - uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/expected-key
+          key: ci-expected-key-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}-${{ matrix.target }}
 
   # Second run on a fresh machine: everything must come back from the cache.
   hit:
@@ -94,10 +103,24 @@ jobs:
       - if: matrix.mode == 'start-end'
         uses: ./end
 
-      - name: The second run must be a cache hit
+      - uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/expected-key
+          key: ci-expected-key-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}-${{ matrix.target }}
+          fail-on-cache-miss: true
+
+      - name: The second run must be a cache hit when the key matches
         env:
           HIT: ${{ steps.single.outputs.cache-hit || steps.start.outputs.cache-hit }}
+          KEY: ${{ steps.single.outputs.key || steps.start.outputs.key }}
         run: |
-          test "${HIT}" = true
-          test -e "${RUNNER_TEMP}/post-restore-ran"
+          expected="$(cat "${RUNNER_TEMP}/expected-key")"
+          if [ "${KEY}" = "${expected}" ]; then
+            test "${HIT}" = true
+            test -e "${RUNNER_TEMP}/post-restore-ran"
+            echo "Restored from ${KEY}."
+          else
+            echo "::warning::This runner has a different image than the miss job, so the restore was not tested. Expected ${expected}, got ${KEY}."
+            test "${HIT}" = false
+          fi
       - run: bash tests/verify.sh

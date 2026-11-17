@@ -334,12 +334,27 @@ cmd_collect() {
   local size
   size="$(du -h "${STATE_ARCHIVE}" | cut -f1)"
   echo "Archive size: ${size} (${count} entries)."
+  report_contents "${STATE_ARCHIVE}"
 
   output save true
   output key "${STATE_KEY}"
   output archive "${STATE_ARCHIVE}"
   output files "${count}"
   output size "${size}"
+}
+
+# Shows where the archived bytes come from, to spot paths that should be excluded.
+report_contents() {
+  local listing
+  listing="$(tar --list --verbose --numeric-owner --file "$1")"
+  echo "::group::Largest directories in the archive"
+  awk '{ n = split($6, p, "/"); d = (n > 3) ? p[1] "/" p[2] "/" p[3] : $6; size[d] += $3 }
+       END { for (d in size) printf "%10.1f MiB  %s\n", size[d] / 1048576, d }' <<<"${listing}" |
+    sort -rn | awk 'NR <= 15'
+  echo "::endgroup::"
+  echo "::group::Largest files in the archive"
+  awk '{ printf "%10.1f MiB  %s\n", $3 / 1048576, $6 }' <<<"${listing}" | sort -rn | awk 'NR <= 15'
+  echo "::endgroup::"
 }
 
 cmd_cleanup() {
