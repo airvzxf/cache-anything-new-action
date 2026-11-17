@@ -8,7 +8,7 @@ inputs:
   key:
     description: >-
       Text that identifies what the steps between `start` and `end` install, for example
-      `cuda-12.4` or `${{ hashFiles('install.sh') }}`. Change it to rebuild the cache. The OS,
+      `cuda-12.4` or the result of `hashFiles('install.sh')`. Change it to rebuild the cache. The OS,
       the architecture and the installed packages are always part of the key.
     required: true
   path:

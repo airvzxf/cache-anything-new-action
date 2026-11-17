@@ -12,7 +12,7 @@ inputs:
     required: true
   key:
     description: >-
-      Extra text for the cache key, for example `${{ hashFiles('install.sh') }}`. The `run`
+      Extra text for the cache key, for example the result of `hashFiles('install.sh')`. The `run`
       commands, the OS, the architecture and the installed packages are always part of the key.
     required: false
     default: ''
