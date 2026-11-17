@@ -1,40 +1,112 @@
 name: 'Cache Anything New'
-author: 'Israel Roldan <israel.alberto.rv@gmail.com>'
+author: 'Israel Roldan'
 description: >-
-  Catch a series of commands then it will check for the new files generated and it should cache those.
+  Run install commands once, then cache every file they created or changed anywhere on the
+  runner and restore it on the next run.
 
 inputs:
-  script:
-    description: 'Create your bash script to execute the commands. They will be generated files and it will stored in the cached.'
+  run:
+    description: >-
+      Bash commands that install or build what you want to cache. They run only on a cache
+      miss, with `set -eo pipefail`, in the workspace directory. Use `sudo` where needed.
     required: true
-  is_cached:
-    description: 'Boolean value to check if the cache was created.'
-    required: true
-  cache:
-    description: 'directory where the new detected files will be stored. It should be the same as the `actions/cache` `path`.'
-    required: true
-  snapshot:
-    description: 'The path of the scanner entry point, recommended the main path (/).'
+  key:
+    description: >-
+      Extra text for the cache key, for example `${{ hashFiles('install.sh') }}`. The `run`
+      commands, the OS, the architecture and the installed packages are always part of the key.
+    required: false
+    default: ''
+  path:
+    description: 'Directory to scan for new and changed files.'
     required: false
     default: '/'
   exclude:
-    description: 'Exclude directories or files during the scanner. Separate with spaces ( ).'
+    description: >-
+      Extra paths to leave out, separated by spaces or new lines. They are added to the
+      built-in list (see the README). Shell patterns such as `/opt/*/logs` are allowed.
     required: false
-    default: '/boot /data /dev /mnt /proc /run /sys'
+    default: ''
+  post-restore:
+    description: >-
+      Bash commands to run after the cache is restored, for example to start a service.
+      `ldconfig` always runs after a restore.
+    required: false
+    default: ''
+  name:
+    description: 'Identifier of this cache when the action is used more than once in a job.'
+    required: false
+    default: 'default'
+
+outputs:
+  cache-hit:
+    description: '`true` when the files were restored from the cache.'
+    value: ${{ steps.restore.outputs.cache-hit }}
+  key:
+    description: 'The cache key.'
+    value: ${{ steps.prepare.outputs.key }}
+  files:
+    description: 'Number of files and directories archived (empty on a cache hit).'
+    value: ${{ steps.collect.outputs.files }}
+  size:
+    description: 'Size of the archive (empty on a cache hit).'
+    value: ${{ steps.collect.outputs.size }}
 
 runs:
   using: 'composite'
   steps:
-    - env:
-        ENV_IS_CACHED: ${{ inputs.is_cached }}
-        ENV_RUNNER_TEMP: ${{ runner.temp }}
-        ENV_CACHE: ${{ inputs.cache }}
-        ENV_SCRIPT_BASE: ${{ github.workspace }}/.github/workflows
-        ENV_SCRIPT: ${{ github.workspace }}/.github/workflows/${{ inputs.script }}
-        ENV_SNAPSHOT: ${{ inputs.snapshot }}
-        ENV_EXCLUDE: ${{ inputs.exclude }}
-      run: ${GITHUB_ACTION_PATH}/src/init.sh
+    - id: prepare
       shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/src/cache-anything-new.sh" prepare
+      env:
+        CAN_NAME: ${{ inputs.name }}
+        CAN_KEY: ${{ inputs.key }}
+        CAN_PATH: ${{ inputs.path }}
+        CAN_EXCLUDE: ${{ inputs.exclude }}
+        CAN_RUN: ${{ inputs.run }}
+
+    - id: cache
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ steps.prepare.outputs.key }}
+        path: ${{ steps.prepare.outputs.archive }}
+
+    - id: restore
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/src/cache-anything-new.sh" restore
+      env:
+        CAN_NAME: ${{ inputs.name }}
+        CAN_CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+
+    - if: steps.restore.outputs.cache-hit == 'true' && inputs.post-restore != ''
+      shell: bash
+      run: bash -eo pipefail -c "${CAN_POST_RESTORE}"
+      env:
+        CAN_POST_RESTORE: ${{ inputs.post-restore }}
+
+    - if: steps.restore.outputs.cache-hit != 'true'
+      shell: bash
+      run: bash -eo pipefail -c "${CAN_RUN}"
+      env:
+        CAN_RUN: ${{ inputs.run }}
+
+    - id: collect
+      if: steps.restore.outputs.cache-hit != 'true'
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/src/cache-anything-new.sh" collect
+      env:
+        CAN_NAME: ${{ inputs.name }}
+
+    - if: steps.collect.outputs.save == 'true'
+      uses: actions/cache/save@v6
+      with:
+        key: ${{ steps.collect.outputs.key }}
+        path: ${{ steps.collect.outputs.archive }}
+
+    - if: always() && steps.prepare.outcome == 'success'
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/src/cache-anything-new.sh" cleanup
+      env:
+        CAN_NAME: ${{ inputs.name }}
 
 branding:
   color: 'orange'

@@ -1,0 +1,76 @@
+name: 'Cache Anything New: start'
+author: 'Israel Roldan'
+description: >-
+  Restore a cache of system files, or start watching for new and changed files until the
+  matching `end` action.
+
+inputs:
+  key:
+    description: >-
+      Text that identifies what the steps between `start` and `end` install, for example
+      `cuda-12.4` or `${{ hashFiles('install.sh') }}`. Change it to rebuild the cache. The OS,
+      the architecture and the installed packages are always part of the key.
+    required: true
+  path:
+    description: 'Directory to scan for new and changed files.'
+    required: false
+    default: '/'
+  exclude:
+    description: >-
+      Extra paths to leave out, separated by spaces or new lines. They are added to the
+      built-in list (see the README). Shell patterns such as `/opt/*/logs` are allowed.
+    required: false
+    default: ''
+  post-restore:
+    description: >-
+      Bash commands to run after the cache is restored, for example to start a service.
+      `ldconfig` always runs after a restore.
+    required: false
+    default: ''
+  name:
+    description: 'Identifier that links this `start` to its `end` when there is more than one pair in a job.'
+    required: false
+    default: 'default'
+
+outputs:
+  cache-hit:
+    description: '`true` when the files were restored; skip the install steps with `if`.'
+    value: ${{ steps.restore.outputs.cache-hit }}
+  key:
+    description: 'The cache key.'
+    value: ${{ steps.prepare.outputs.key }}
+
+runs:
+  using: 'composite'
+  steps:
+    - id: prepare
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/../src/cache-anything-new.sh" prepare
+      env:
+        CAN_NAME: ${{ inputs.name }}
+        CAN_KEY: ${{ inputs.key }}
+        CAN_PATH: ${{ inputs.path }}
+        CAN_EXCLUDE: ${{ inputs.exclude }}
+
+    - id: cache
+      uses: actions/cache/restore@v6
+      with:
+        key: ${{ steps.prepare.outputs.key }}
+        path: ${{ steps.prepare.outputs.archive }}
+
+    - id: restore
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/../src/cache-anything-new.sh" restore
+      env:
+        CAN_NAME: ${{ inputs.name }}
+        CAN_CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+
+    - if: steps.restore.outputs.cache-hit == 'true' && inputs.post-restore != ''
+      shell: bash
+      run: bash -eo pipefail -c "${CAN_POST_RESTORE}"
+      env:
+        CAN_POST_RESTORE: ${{ inputs.post-restore }}
+
+branding:
+  color: 'orange'
+  icon: 'archive'

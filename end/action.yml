@@ -1,0 +1,44 @@
+name: 'Cache Anything New: end'
+author: 'Israel Roldan'
+description: >-
+  Archive every file created or changed since the matching `start` action and save it in the
+  cache. Does nothing when `start` restored the cache.
+
+inputs:
+  name:
+    description: 'Identifier of the matching `start` action.'
+    required: false
+    default: 'default'
+
+outputs:
+  files:
+    description: 'Number of files and directories archived (empty on a cache hit).'
+    value: ${{ steps.collect.outputs.files }}
+  size:
+    description: 'Size of the archive (empty on a cache hit).'
+    value: ${{ steps.collect.outputs.size }}
+
+runs:
+  using: 'composite'
+  steps:
+    - id: collect
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/../src/cache-anything-new.sh" collect
+      env:
+        CAN_NAME: ${{ inputs.name }}
+
+    - if: steps.collect.outputs.save == 'true'
+      uses: actions/cache/save@v6
+      with:
+        key: ${{ steps.collect.outputs.key }}
+        path: ${{ steps.collect.outputs.archive }}
+
+    - if: always()
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/../src/cache-anything-new.sh" cleanup
+      env:
+        CAN_NAME: ${{ inputs.name }}
+
+branding:
+  color: 'orange'
+  icon: 'archive'
