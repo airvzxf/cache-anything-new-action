@@ -9,8 +9,9 @@ if [[ "$(id -u)" == 0 ]]; then sudo() { "$@"; }; fi
 sudo apt-get update -qq
 sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends cowsay
 
-# A new system user: changes /etc/passwd, /etc/group and /etc/shadow.
-sudo useradd --system --create-home can-test
+# A new system user: changes /etc/passwd, /etc/group and /etc/shadow. No home directory,
+# because hosted runners copy several hundred MB of toolchains from /etc/skel into it.
+sudo useradd --system --no-create-home can-test
 
 # Ownership, permissions, special bits, symbolic links and empty directories.
 sudo mkdir -p /opt/can-test/empty /opt/excluded
