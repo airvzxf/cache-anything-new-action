@@ -1,0 +1,126 @@
+name: Test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: shellcheck src/*.sh
+
+  # First run of each scenario: cache miss, install, archive and save.
+  miss:
+    name: miss (${{ matrix.mode }}, ${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [run, start-end]
+        target: [ubuntu-24.04, ubuntu-24.04-arm, container]
+    runs-on: ${{ matrix.target == 'container' && 'ubuntu-24.04' || matrix.target }}
+    container: ${{ matrix.target == 'container' && 'ubuntu:24.04' || null }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - if: matrix.mode == 'run'
+        id: single
+        uses: ./
+        with:
+          key: ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}
+          exclude: /opt/excluded
+          run: bash tests/install.sh
+
+      - if: matrix.mode == 'start-end'
+        id: start
+        uses: ./start
+        with:
+          key: ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}
+          exclude: /opt/excluded
+      - if: matrix.mode == 'start-end' && steps.start.outputs.cache-hit != 'true'
+        run: bash tests/install.sh
+      - if: matrix.mode == 'start-end'
+        id: end
+        uses: ./end
+
+      - name: The first run must be a cache miss
+        env:
+          HIT: ${{ steps.single.outputs.cache-hit || steps.start.outputs.cache-hit }}
+          FILES: ${{ steps.single.outputs.files || steps.end.outputs.files }}
+          KEY: ${{ steps.single.outputs.key || steps.start.outputs.key }}
+        run: |
+          test "${HIT}" = false
+          test "${FILES}" -gt 0
+          echo "Archived ${FILES} entries."
+          printf '%s\n' "${KEY}" > "${RUNNER_TEMP}/expected-key"
+      - run: bash tests/verify.sh
+
+      # Hand the key to the hit job, which can then tell a broken restore from a runner that
+      # got a different image build (the key includes the image, so a miss is correct there).
+      - uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/expected-key
+          key: ci-expected-key-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}-${{ matrix.target }}
+
+  # Second run on a fresh machine: everything must come back from the cache.
+  hit:
+    name: hit (${{ matrix.mode }}, ${{ matrix.target }})
+    needs: miss
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [run, start-end]
+        target: [ubuntu-24.04, ubuntu-24.04-arm, container]
+    runs-on: ${{ matrix.target == 'container' && 'ubuntu-24.04' || matrix.target }}
+    container: ${{ matrix.target == 'container' && 'ubuntu:24.04' || null }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - if: matrix.mode == 'run'
+        id: single
+        uses: ./
+        with:
+          key: ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}
+          exclude: /opt/excluded
+          run: bash tests/install.sh
+          post-restore: touch "${RUNNER_TEMP}/post-restore-ran"
+
+      - if: matrix.mode == 'start-end'
+        id: start
+        uses: ./start
+        with:
+          key: ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}
+          exclude: /opt/excluded
+          post-restore: touch "${RUNNER_TEMP}/post-restore-ran"
+      - if: matrix.mode == 'start-end' && steps.start.outputs.cache-hit != 'true'
+        run: bash tests/install.sh
+      - if: matrix.mode == 'start-end'
+        uses: ./end
+
+      - uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/expected-key
+          key: ci-expected-key-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.mode }}-${{ matrix.target }}
+          fail-on-cache-miss: true
+
+      - name: The second run must be a cache hit when the key matches
+        env:
+          HIT: ${{ steps.single.outputs.cache-hit || steps.start.outputs.cache-hit }}
+          KEY: ${{ steps.single.outputs.key || steps.start.outputs.key }}
+        run: |
+          expected="$(cat "${RUNNER_TEMP}/expected-key")"
+          if [ "${KEY}" = "${expected}" ]; then
+            test "${HIT}" = true
+            test -e "${RUNNER_TEMP}/post-restore-ran"
+            echo "Restored from ${KEY}."
+          else
+            echo "::warning::This runner has a different image than the miss job, so the restore was not tested. Expected ${expected}, got ${KEY}."
+            test "${HIT}" = false
+          fi
+      - run: bash tests/verify.sh
