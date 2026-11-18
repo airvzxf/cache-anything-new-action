@@ -142,6 +142,21 @@ These paths are never scanned. Add your own with `exclude`.
 - The runner itself: `$RUNNER_TEMP`, the work directory (the checkout and downloaded actions),
   `~/actions-runner` and `~/runners`.
 
+## Benchmarks
+
+[cache-anything-new-benchmarks](https://github.com/airvzxf/cache-anything-new-benchmarks) builds
+real projects (C++ with Boost and SDL2, XeLaTeX, Python with GDAL, Rust with OpenSSL and protoc,
+CUDA, and C++ in a Debian container) without a cache and with this action and
+[cache-apt-pkgs-action](https://github.com/awalsh128/cache-apt-pkgs-action).
+[Results](https://github.com/airvzxf/cache-anything-new-benchmarks/blob/main/RESULTS.md) for
+v2.0.0, median of five runs:
+
+- Every restore built and passed its checks, including TeX Live fonts and the BLAS
+  alternatives of GDAL, which break after a restore with cache-apt-pkgs-action.
+- A hit takes 1–14 s. A miss makes the job about 40–130 s longer than a plain install.
+- The cache pays off after one hit for big installs (Boost and SDL2: job 117 s → 17 s;
+  TeX Live: 125 s → 20 s) and barely or not at all for a few small packages.
+
 ## Limitations
 
 - **Linux only.** macOS and Windows runners fail with a clear error.
@@ -156,6 +171,10 @@ These paths are never scanned. Add your own with `exclude`.
   millions of files; in this repository's tests a scan of `/` takes about 1–2 minutes on
   `ubuntu-24.04` and under a minute on `ubuntu-24.04-arm`. Use a narrower `path` when you
   know where the files go.
+- **A new runner image is a new key.** The key includes the image version and the installed
+  packages, so a hit needs the same image build as the miss. While GitHub rolls out a new image,
+  jobs can land on either build and miss more often; in the benchmarks, 60 % of the hits on
+  hosted runners restored while two builds were in use.
 
 ## Security
 
