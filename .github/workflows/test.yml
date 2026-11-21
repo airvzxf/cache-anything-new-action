@@ -209,13 +209,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           RUN: -${{ github.run_id }}-${{ github.run_attempt }}-
+        # By id: deleting by key also deletes every cache whose key starts with it.
         run: |
-          keys="$(gh api --paginate "repos/${REPO}/actions/caches?per_page=100" \
-            --jq ".actions_caches[] | select(.key | contains(\"${RUN}\")) | .key" | sort -u)"
+          ids="$(gh api --paginate "repos/${REPO}/actions/caches?per_page=100" \
+            --jq ".actions_caches[] | select(.key | contains(\"${RUN}\")) | .id")"
           count=0
-          while IFS= read -r key; do
-            [ -n "${key}" ] || continue
-            gh api -X DELETE "repos/${REPO}/actions/caches?key=${key}" --silent
+          for id in ${ids}; do
+            gh api -X DELETE "repos/${REPO}/actions/caches/${id}" --silent
             count=$((count + 1))
-          done <<< "${keys}"
+          done
           echo "Deleted ${count} caches."
