@@ -81,6 +81,7 @@ jobs:
 | `key`          | one step, start | `''`        | Extra text for the cache key. Required in `start`. See [Cache key](#cache-key).                                                       |
 | `path`         | one step, start | `/`         | Directory to scan. A narrower path, such as `/opt` or `/usr/local`, scans faster.                                                                    |
 | `exclude`      | one step, start | `''`        | Extra paths to leave out, added to the [built-in list](#excluded-paths). Separate them with spaces, or with new lines for paths that contain spaces. Shell patterns are allowed. |
+| `detection`    | one step, start | `auto`      | `auto` records the changes with fanotify while they happen when the runner allows it, and scans otherwise. `scan` always scans. See [How it works](#how-it-works). |
 | `post-restore` | one step, start | `''`        | Bash commands to run after a restore, for example `sudo systemctl start postgresql`. `ldconfig` always runs after a restore.                         |
 | `name`         | all             | `default`   | Identifier of the cache when the action is used more than once in a job.                                                                             |
 
@@ -97,8 +98,8 @@ jobs:
 
 1. **Start.** The action computes the cache key and asks `actions/cache` for it. On a hit, it
    extracts the archive over `path` as root, keeping owners, permissions, special bits,
-   extended attributes and ACLs, then runs `ldconfig` and `post-restore`. On a miss, it creates
-   a marker file.
+   extended attributes and ACLs, then runs `ldconfig` and `post-restore`. On a miss, it starts
+   watching the file system and creates a marker file.
 2. **Install.** Your commands or steps run.
 3. **End.** The action lists every file, symbolic link and directory under `path` whose inode
    change time (ctime) is newer than the marker, archives them as root with GNU `tar` and saves
@@ -109,10 +110,24 @@ permissions changed, and unlike the modification time it cannot be set back. Tha
 that packages install with their original dates are still found, and why files that already
 existed but were modified (such as `/var/lib/dpkg/status` or `/etc/passwd`) are cached too.
 
-The scan stays on the file system of `path` (`find -xdev`), so mounted disks such as `/mnt`
-and the container's bind mounts are left out. The directories below the second level are
-scanned by several `find` processes at once, because reading file metadata is bound by disk
-latency. Archived paths are relative to `/`, so files are always restored where they were
+There are two ways to find those files, chosen with `detection`:
+
+- **fanotify** (`auto`, the default, where the runner allows it). A small Python program marks
+  the file system of `path` with [fanotify][Fanotify] and records every entry that is created,
+  written, renamed or has its metadata changed. At the end only those entries, and the
+  directories that were created or moved in, are checked with the same rules as the scan. This
+  takes about a second. It needs root or passwordless sudo, Linux 5.9 or newer and `python3`,
+  which GitHub-hosted runners have. Container jobs usually lack `python3` or the
+  `CAP_SYS_ADMIN` capability, and then the action scans. The log says which way was used and
+  why.
+- **Scan** (`scan`, or when fanotify is not available). `find` reads the metadata of every
+  file under `path`, which takes one or two minutes for `/` on a hosted runner. The
+  directories below the second level are scanned by several `find` processes at once, because
+  reading file metadata is bound by disk latency.
+
+The tests of this repository run both on every hosted runner and check that the watcher finds
+every entry that the scan finds. Both stay on the file system of `path` (like `find -xdev`), so
+mounted disks such as `/mnt` and the container's bind mounts are left out. Archived paths are relative to `/`, so files are always restored where they were
 found. The log lists the largest directories and files in the archive, which helps to spot
 paths worth excluding.
 
@@ -140,7 +155,8 @@ These paths are never scanned. Add your own with `exclude`.
 - Files managed by the container runtime: `/etc/hostname`, `/etc/hosts`, `/etc/resolv.conf`,
   `/etc/mtab`, `/__w`, `/__e`, `/__t`, `/github`.
 - The runner itself: `$RUNNER_TEMP`, the work directory (the checkout and downloaded actions),
-  `~/actions-runner` and `~/runners`.
+  the directory of the runner program (found from its process), `~/actions-runner` and
+  `~/runners`.
 
 ## Benchmarks
 
@@ -167,14 +183,17 @@ v2.0.0, median of five runs:
   image on the next run.
 - **Background writes are cached too.** Anything another process changes between start and
   end is archived. Add such paths to `exclude`.
-- **The scan reads the metadata of every file under `path`.** Hosted runner images hold
-  millions of files; in this repository's tests a scan of `/` takes about 1–2 minutes on
-  `ubuntu-24.04` and under a minute on `ubuntu-24.04-arm`. Use a narrower `path` when you
-  know where the files go.
-- **A new runner image is a new key.** The key includes the image version and the installed
-  packages, so a hit needs the same image build as the miss. While GitHub rolls out a new image,
-  jobs can land on either build and miss more often; in the benchmarks, 60 % of the hits on
-  hosted runners restored while two builds were in use.
+- **Without fanotify, the scan reads the metadata of every file under `path`.** Hosted runner
+  images hold millions of files; a scan of `/` takes about 1–2 minutes on `ubuntu-24.04` and
+  under a minute on `ubuntu-24.04-arm`. In a container job, a narrower `path` scans faster.
+- **One cache per runner variant.** The key includes the image version and the installed
+  packages, so a hit needs the same image build as the miss. GitHub runs `ubuntu-24.04` on two
+  clouds, with different image builds, kernels and cloud packages (for example
+  `walinuxagent` and `linux-azure` on one, `ec2-hibinit-agent` and `linux-aws` on the other),
+  so each variant builds its own cache on its first miss and restores it from then on. The
+  archive holds the whole package database (`/var/lib/dpkg/status`), so restoring a cache
+  from the other variant would replace its package list; that is why the key does not ignore
+  the difference. Expect one miss per variant after every image update.
 
 ## Security
 
@@ -233,4 +252,5 @@ Other changes in v2:
 
 [AGPL-3.0](LICENSE)
 
+[Fanotify]: https://man7.org/linux/man-pages/man7/fanotify.7.html
 [CacheAccess]: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache
