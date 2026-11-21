@@ -32,6 +32,13 @@ inputs:
       `ldconfig` always runs after a restore.
     required: false
     default: ''
+  detection:
+    description: >-
+      How new and changed files are found on a cache miss. `auto` records them with fanotify
+      while they happen when the runner allows it (root or sudo, Linux 5.9+, python3), and
+      scans the file system otherwise. `scan` always scans, which takes a minute or two for `/`.
+    required: false
+    default: 'auto'
   name:
     description: 'Identifier of this cache when the action is used more than once in a job.'
     required: false
@@ -76,6 +83,7 @@ runs:
       env:
         CAN_NAME: ${{ inputs.name }}
         CAN_CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        CAN_DETECTION: ${{ inputs.detection }}
 
     - if: steps.restore.outputs.cache-hit == 'true' && inputs.post-restore != ''
       shell: bash

@@ -25,6 +25,16 @@ sudo ln -s /opt/can-test/tool /usr/local/bin/can-test-tool
 # A change to a file that already existed.
 echo '# can-test' | sudo tee -a /etc/environment >/dev/null
 
+# A directory created elsewhere and moved in: its files raise no event of their own.
+rm -rf /tmp/can-test-moved && mkdir -p /tmp/can-test-moved/sub
+echo 'moved' >/tmp/can-test-moved/sub/file
+sudo mv /tmp/can-test-moved /opt/can-test/moved
+
+# A hard link, and a file installed with an old modification time.
+sudo ln /opt/can-test/secret /opt/can-test/secret-link
+echo 'old' | sudo tee /opt/can-test/old >/dev/null
+sudo touch -d 2001-01-01 /opt/can-test/old
+
 # Files that must not be cached.
 echo 'excluded' | sudo tee /opt/excluded/file >/dev/null
 echo 'build output' >can-test-workspace-file
