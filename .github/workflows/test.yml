@@ -26,13 +26,14 @@ jobs:
       fail-fast: false
       matrix:
         mode: [run, start-end]
-        target: [ubuntu-24.04, ubuntu-24.04-arm, container, container-fanotify]
+        target: [ubuntu-24.04, ubuntu-24.04-arm, container, container-python]
     runs-on: ${{ startsWith(matrix.target, 'container') && 'ubuntu-24.04' || matrix.target }}
-    # container-fanotify: a container that allows fanotify (capabilities and python3).
-    container: ${{ startsWith(matrix.target, 'container') && fromJSON(format('{{"image":"ubuntu:24.04","options":"{0}"}}', matrix.target == 'container-fanotify' && '--cap-add SYS_ADMIN --cap-add DAC_READ_SEARCH' || '')) || null }}
+    # container-python: python3 and the capabilities fanotify needs. Its overlayfs root still
+    # rejects the mark (EOPNOTSUPP), so it tests the fallback to the scan.
+    container: ${{ startsWith(matrix.target, 'container') && fromJSON(format('{{"image":"ubuntu:24.04","options":"{0}"}}', matrix.target == 'container-python' && '--cap-add SYS_ADMIN --cap-add DAC_READ_SEARCH' || '')) || null }}
     steps:
       - uses: actions/checkout@v7
-      - if: matrix.target == 'container-fanotify'
+      - if: matrix.target == 'container-python'
         run: apt-get update -qq && apt-get install -y -qq --no-install-recommends python3
 
       - if: matrix.mode == 'run'
@@ -67,8 +68,7 @@ jobs:
           test "${FILES}" -gt 0
           echo "Detection: ${DETECTION}."
           case "${TARGET}" in
-            container) test "${DETECTION}" = scan ;;
-            container-fanotify) ;;
+            container*) test "${DETECTION}" = scan ;;
             *) test "${DETECTION}" = fanotify ;;
           esac
           echo "Archived ${FILES} entries."
@@ -100,13 +100,14 @@ jobs:
       fail-fast: false
       matrix:
         mode: [run, start-end]
-        target: [ubuntu-24.04, ubuntu-24.04-arm, container, container-fanotify]
+        target: [ubuntu-24.04, ubuntu-24.04-arm, container, container-python]
     runs-on: ${{ startsWith(matrix.target, 'container') && 'ubuntu-24.04' || matrix.target }}
-    # container-fanotify: a container that allows fanotify (capabilities and python3).
-    container: ${{ startsWith(matrix.target, 'container') && fromJSON(format('{{"image":"ubuntu:24.04","options":"{0}"}}', matrix.target == 'container-fanotify' && '--cap-add SYS_ADMIN --cap-add DAC_READ_SEARCH' || '')) || null }}
+    # container-python: python3 and the capabilities fanotify needs. Its overlayfs root still
+    # rejects the mark (EOPNOTSUPP), so it tests the fallback to the scan.
+    container: ${{ startsWith(matrix.target, 'container') && fromJSON(format('{{"image":"ubuntu:24.04","options":"{0}"}}', matrix.target == 'container-python' && '--cap-add SYS_ADMIN --cap-add DAC_READ_SEARCH' || '')) || null }}
     steps:
       - uses: actions/checkout@v7
-      - if: matrix.target == 'container-fanotify'
+      - if: matrix.target == 'container-python'
         run: apt-get update -qq && apt-get install -y -qq --no-install-recommends python3
 
       - if: matrix.mode == 'run'
