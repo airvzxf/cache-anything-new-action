@@ -164,14 +164,15 @@ These paths are never scanned. Add your own with `exclude`.
 real projects (C++ with Boost and SDL2, XeLaTeX, Python with GDAL, Rust with OpenSSL and protoc,
 CUDA, and C++ in a Debian container) without a cache and with this action and
 [cache-apt-pkgs-action](https://github.com/awalsh128/cache-apt-pkgs-action).
-[Results](https://github.com/airvzxf/cache-anything-new-benchmarks/blob/main/RESULTS.md) for
-v2.0.0, median of five runs:
+[Results](https://github.com/airvzxf/cache-anything-new-benchmarks/blob/main/RESULTS.md),
+median of five runs with fanotify detection:
 
 - Every restore built and passed its checks, including TeX Live fonts and the BLAS
   alternatives of GDAL, which break after a restore with cache-apt-pkgs-action.
-- A hit takes 1–14 s. A miss makes the job about 40–130 s longer than a plain install.
-- The cache pays off after one hit for big installs (Boost and SDL2: job 117 s → 17 s;
-  TeX Live: 125 s → 20 s) and barely or not at all for a few small packages.
+- A miss costs about the same as installing without a cache (3–7 s more on hosted runners;
+  v2.0.0 scanned for 1–2 minutes). A hit takes 1–7 s.
+- The cache pays off from the first hit. Job time without a cache → on a hit: Boost and SDL2
+  85 → 22 s, TeX Live 84 → 12 s, GDAL 43 → 13 s, CUDA 45 → 18 s.
 
 ## Limitations
 
