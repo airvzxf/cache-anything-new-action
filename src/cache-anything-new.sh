@@ -287,6 +287,7 @@ cmd_restore() {
       "watch=${watch}"
     echo "Cache miss: new and changed files will be collected from ${STATE_PATH}."
     output cache-hit false
+    if [[ "${watch}" == true ]]; then output detection fanotify; else output detection scan; fi
     return
   fi
 

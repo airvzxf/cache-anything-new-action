@@ -91,6 +91,7 @@ jobs:
 |-------------|-----------------|-----------------------------------------------------|
 | `cache-hit` | one step, start | `true` when the files were restored from the cache. |
 | `key`       | one step, start | The cache key.                                      |
+| `detection` | one step, start | On a miss, how the changes were found: `fanotify` or `scan`. |
 | `files`     | one step, end   | Number of files and directories archived.           |
 | `size`      | one step, end   | Size of the archive.                                |
 
@@ -117,13 +118,16 @@ There are two ways to find those files, chosen with `detection`:
   written, renamed or has its metadata changed. At the end only those entries, and the
   directories that were created or moved in, are checked with the same rules as the scan. This
   takes about a second. It needs root or passwordless sudo, Linux 5.9 or newer and `python3`,
-  which GitHub-hosted runners have. Container jobs usually lack `python3` or the
-  `CAP_SYS_ADMIN` capability, and then the action scans. The log says which way was used and
-  why.
+  which GitHub-hosted runners have. The log and the `detection` output say which way was used,
+  and why.
 - **Scan** (`scan`, or when fanotify is not available). `find` reads the metadata of every
   file under `path`, which takes one or two minutes for `/` on a hosted runner. The
   directories below the second level are scanned by several `find` processes at once, because
   reading file metadata is bound by disk latency.
+
+Container jobs always scan: the root file system of a container is overlayfs, which rejects
+this kind of fanotify mark even with `--cap-add SYS_ADMIN` and `python3` (tested in this
+repository's CI). The container's own files are few, so the scan takes about a second there.
 
 The tests of this repository run both on every hosted runner and check that the watcher finds
 every entry that the scan finds. Both stay on the file system of `path` (like `find -xdev`), so
@@ -186,7 +190,7 @@ median of five runs with fanotify detection:
   end is archived. Add such paths to `exclude`.
 - **Without fanotify, the scan reads the metadata of every file under `path`.** Hosted runner
   images hold millions of files; a scan of `/` takes about 1–2 minutes on `ubuntu-24.04` and
-  under a minute on `ubuntu-24.04-arm`. In a container job, a narrower `path` scans faster.
+  under a minute on `ubuntu-24.04-arm`. Hosted runners use fanotify instead.
 - **One cache per runner variant.** The key includes the image version and the installed
   packages, so a hit needs the same image build as the miss. GitHub runs `ubuntu-24.04` on two
   clouds, with different image builds, kernels and cloud packages (for example
