@@ -193,3 +193,29 @@ jobs:
         env:
           HIT: ${{ steps.cuda.outputs.cache-hit }}
         run: echo "cache-hit=${HIT}"
+
+  # The caches of this run are only for its own hit jobs, so delete them at the end instead
+  # of letting every push add a few more until GitHub evicts them. A pull request from a fork
+  # gets a read-only token and leaves them to expire.
+  cleanup:
+    needs: [miss, hit, cuda-example]
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    steps:
+      - name: Delete the caches of this run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN: -${{ github.run_id }}-${{ github.run_attempt }}-
+        # By id: deleting by key also deletes every cache whose key starts with it.
+        run: |
+          ids="$(gh api --paginate "repos/${REPO}/actions/caches?per_page=100" \
+            --jq ".actions_caches[] | select(.key | contains(\"${RUN}\")) | .id")"
+          count=0
+          for id in ${ids}; do
+            gh api -X DELETE "repos/${REPO}/actions/caches/${id}" --silent
+            count=$((count + 1))
+          done
+          echo "Deleted ${count} caches."
