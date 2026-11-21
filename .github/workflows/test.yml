@@ -19,6 +19,9 @@ jobs:
   # First run of each scenario: cache miss, install, archive and save.
   miss:
     name: miss (${{ matrix.mode }}, ${{ matrix.target }})
+    env:
+      # Where fanotify is used, also scan and fail if the watcher missed anything.
+      CAN_VERIFY_WATCH: 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -60,6 +63,16 @@ jobs:
           echo "Archived ${FILES} entries."
           printf '%s\n' "${KEY}" > "${RUNNER_TEMP}/expected-key"
       - run: bash tests/verify.sh
+      - name: The runner's own directory is excluded
+        if: matrix.target != 'container'
+        run: |
+          excludes="${RUNNER_TEMP}/cache-anything-new/default/excludes"
+          cat "${excludes}"
+          while IFS= read -r dir; do
+            if [ -x "${dir}/bin/Runner.Worker" ]; then echo "Runner: ${dir}"; exit 0; fi
+          done < "${excludes}"
+          echo "::error::The runner directory is not in the excludes."
+          exit 1
 
       # Hand the key to the hit job, which can then tell a broken restore from a runner that
       # got a different image build (the key includes the image, so a miss is correct there).

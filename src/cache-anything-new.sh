@@ -5,11 +5,16 @@
 #   prepare  compute the cache key and the archive path, reset the state directory
 #   restore  on a cache hit, extract the archive over the scan path; otherwise set the marker
 #   collect  find everything created or changed after the marker and archive it
-#   cleanup  remove the archive and the temporary files
+#   cleanup  remove the archive and the temporary files, stop the watcher if it still runs
 #
 # Detection uses the inode change time (ctime): every file created, written, renamed,
 # chmod-ed or chown-ed after the marker is newer than it. Unlike mtime, ctime cannot be
 # set back by tar, dpkg or cp -p, so files installed with their original dates are found.
+#
+# Finding those files means reading the metadata of every file under the scan path, which
+# takes a minute or two on a hosted runner. When fanotify is available (root or sudo, Linux
+# 5.9+, python3), src/watch.py records the changes while they happen instead, and collect
+# only checks those entries with the same rules.
 
 set -Eeuo pipefail
 shopt -s inherit_errexit
@@ -94,9 +99,11 @@ load_state() {
       path=*) STATE_PATH="${line#path=}" ;;
       archive=*) STATE_ARCHIVE="${line#archive=}" ;;
       hit=*) STATE_HIT="${line#hit=}" ;;
+      watch=*) STATE_WATCH="${line#watch=}" ;;
     esac
   done <"${STATE_DIR}/state"
   STATE_HIT="${STATE_HIT:-}"
+  STATE_WATCH="${STATE_WATCH:-false}"
 }
 
 # ---------------------------------------------------------------------------
@@ -143,6 +150,24 @@ normalize_path() {
   printf '%s' "${path}"
 }
 
+# The directory of the runner that runs this job (its logs and diagnostics change all the
+# time), found from the Runner.Worker process above this script. Empty in a container job,
+# where the runner is outside the container.
+runner_root() {
+  local pid="$$" exe stat
+  while [[ "${pid}" =~ ^[0-9]+$ ]] && ((pid > 1)); do
+    exe="$(readlink "/proc/${pid}/exe" 2>/dev/null || true)"
+    if [[ "${exe}" == */bin/Runner.Worker ]]; then
+      dirname "$(dirname "${exe}")"
+      return
+    fi
+    stat="$(cat "/proc/${pid}/stat" 2>/dev/null)" || return 0
+    # The fields after the command name, which is in parentheses: state, ppid, ...
+    stat="${stat##*) }"
+    pid="$(cut -d' ' -f2 <<<"${stat}")"
+  done
+}
+
 default_excludes() {
   printf '%s\n' \
     /proc /sys /dev /run /tmp /var/tmp /var/log \
@@ -158,6 +183,11 @@ default_excludes() {
   fi
   if [[ -n "${HOME:-}" && "${HOME}" != / ]]; then
     printf '%s\n' "${HOME}/actions-runner" "${HOME}/runners"
+  fi
+  local root
+  root="$(runner_root)"
+  if [[ -n "${root}" && "${root}" != / ]]; then
+    printf '%s\n' "${root}"
   fi
 }
 
@@ -243,12 +273,18 @@ cmd_restore() {
   init_privileges
 
   if [[ "${CAN_CACHE_HIT:-}" != true ]]; then
+    # The watcher starts before the marker, so it sees every change newer than the marker.
+    local watch=false
+    if start_watcher; then
+      watch=true
+    fi
     # The marker must be older than anything the following steps touch. Inode timestamps
     # come from a coarse clock, so wait a moment for the next tick.
     touch "${STATE_DIR}/marker"
     sleep 1
     write_state "${STATE_DIR}" \
-      "key=${STATE_KEY}" "path=${STATE_PATH}" "archive=${STATE_ARCHIVE}" "hit=false"
+      "key=${STATE_KEY}" "path=${STATE_PATH}" "archive=${STATE_ARCHIVE}" "hit=false" \
+      "watch=${watch}"
     echo "Cache miss: new and changed files will be collected from ${STATE_PATH}."
     output cache-hit false
     return
@@ -275,6 +311,66 @@ cmd_restore() {
   write_state "${STATE_DIR}" \
     "key=${STATE_KEY}" "path=${STATE_PATH}" "archive=${STATE_ARCHIVE}" "hit=true"
   output cache-hit true
+}
+
+# Starts src/watch.py in the background. Returns 1, after saying why, when it cannot be used;
+# collect then scans the file system instead.
+start_watcher() {
+  if [[ "${CAN_DETECTION:-auto}" == scan ]]; then
+    echo "Detection: full scan ('detection: scan')."
+    return 1
+  fi
+  [[ "${CAN_DETECTION:-auto}" == auto ]] || die "Input 'detection' must be 'auto' or 'scan'."
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "Detection: full scan (python3 is not installed, so fanotify cannot be used)."
+    return 1
+  fi
+
+  local watcher
+  watcher="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/watch.py"
+  rm -f "${STATE_DIR}"/watch.*
+  # With its output redirected, the step can finish while it runs; the runner stops it at
+  # the end of the job at the latest.
+  "${AS_ROOT[@]}" python3 -I "${watcher}" "${STATE_DIR}" "${STATE_PATH}" \
+    </dev/null >"${STATE_DIR}/watch.log" 2>&1 &
+  local launcher=$! i
+  for ((i = 0; i < 100; i++)); do
+    [[ -e "${STATE_DIR}/watch.ready" ]] && break
+    kill -0 "${launcher}" 2>/dev/null || break
+    sleep 0.1
+  done
+  if [[ -e "${STATE_DIR}/watch.ready" ]]; then
+    echo "Detection: fanotify (changes are recorded while they happen)."
+    return 0
+  fi
+  stop_watcher_process
+  echo "Detection: full scan ($(tail -n 1 "${STATE_DIR}/watch.log" 2>/dev/null || echo 'the watcher did not start'))."
+  return 1
+}
+
+stop_watcher_process() {
+  local pid
+  pid="$(cat "${STATE_DIR}/watch.pid" 2>/dev/null || true)"
+  if [[ "${pid}" =~ ^[0-9]+$ ]]; then
+    "${AS_ROOT[@]}" kill -TERM "${pid}" 2>/dev/null || true
+  fi
+}
+
+# Stops the watcher and waits for its list. Returns 1 when the list is not usable.
+stop_watcher() {
+  stop_watcher_process
+  local i
+  for ((i = 0; i < 1200; i++)); do
+    [[ -e "${STATE_DIR}/watch.done" ]] && break
+    sleep 0.1
+  done
+  cat "${STATE_DIR}/watch.log" 2>/dev/null || true
+  case "$(cat "${STATE_DIR}/watch.done" 2>/dev/null || true)" in
+    ok) return 0 ;;
+    overflow) warn "The kernel dropped file events; scanning the file system instead." ;;
+    *) warn "The watcher did not finish; scanning the file system instead." ;;
+  esac
+  return 1
 }
 
 # Writes the absolute paths of every entry under the scan path whose change time is newer than
@@ -347,14 +443,34 @@ cmd_collect() {
   tar_metadata_flags
 
   local list="${STATE_DIR}/files.list" errors="${STATE_DIR}/find.err"
-  echo "::group::Scanning ${STATE_PATH} for files created or changed since the start"
-  local started="${SECONDS}"
-  scan_changes "${list}" "${errors}"
+  local started="${SECONDS}" scanned=false
+  if [[ "${STATE_WATCH}" == true ]]; then
+    echo "::group::Collecting the files created or changed since the start"
+    # CAN_VERIFY_WATCH (for the tests) also scans, while the watcher still runs, and fails
+    # when the watcher missed an entry that the scan found.
+    if [[ "${CAN_VERIFY_WATCH:-}" == true ]]; then
+      scan_changes "${STATE_DIR}/scan.list" "${errors}"
+    fi
+    if stop_watcher; then
+      "${AS_ROOT[@]}" cat "${STATE_DIR}/watch.list" >"${list}"
+      if [[ "${CAN_VERIFY_WATCH:-}" == true ]]; then
+        verify_watch "${STATE_DIR}/scan.list" "${list}"
+      fi
+    else
+      scanned=true
+    fi
+  else
+    scanned=true
+  fi
+  if [[ "${scanned}" == true ]]; then
+    [[ "${STATE_WATCH}" == true ]] || echo "::group::Scanning ${STATE_PATH} for files created or changed since the start"
+    scan_changes "${list}" "${errors}"
+  fi
   if [[ -s "${errors}" ]]; then
     warn "find reported $(wc -l <"${errors}") error(s) while scanning; see the log."
     cat "${errors}" >&2
   fi
-  echo "Scan time: $((SECONDS - started)) s."
+  echo "Detection time: $((SECONDS - started)) s."
 
   local count
   count="$(tr -cd '\0' <"${list}" | wc -c)"
@@ -389,6 +505,17 @@ cmd_collect() {
   output size "${size}"
 }
 
+# Fails when the watcher's list lacks an entry of the scan's list.
+verify_watch() {
+  local missed
+  missed="$(comm -23 <(tr '\0' '\n' <"$1" | LC_ALL=C sort -u) <(tr '\0' '\n' <"$2" | LC_ALL=C sort -u))"
+  if [[ -n "${missed}" ]]; then
+    printf '%s\n' "${missed}" | awk 'NR <= 50' >&2
+    die "The watcher missed $(wc -l <<<"${missed}") entries that the scan found."
+  fi
+  echo "Verified: the watcher found every entry that the scan found ($(tr -cd '\0' <"$1" | wc -c))."
+}
+
 # Shows where the archived bytes come from, to spot paths that should be excluded.
 report_contents() {
   local listing
@@ -404,9 +531,13 @@ report_contents() {
 }
 
 cmd_cleanup() {
-  local dir
-  dir="$(state_dir)"
-  rm -f "${dir}/archive.tar" "${dir}/files.list" "${dir}/find.err"
+  STATE_DIR="$(state_dir)"
+  # A job that failed before collect leaves the watcher running.
+  if [[ -e "${STATE_DIR}/watch.pid" && ! -e "${STATE_DIR}/watch.done" ]]; then
+    init_privileges
+    stop_watcher_process
+  fi
+  rm -f "${STATE_DIR}/archive.tar" "${STATE_DIR}"/*.list "${STATE_DIR}/find.err"
 }
 
 main() {

@@ -27,6 +27,9 @@ check "the setuid bit is kept" test "$(stat -c '%a' /opt/can-test/tool)" = 4755
 check "the symbolic link works" test "$(can-test-tool)" = can-test-ok
 check "the empty directory exists" test -d /opt/can-test/empty
 check "the changed file keeps the change" grep -qx '# can-test' /etc/environment
+check "the moved-in directory keeps its files" test "$(cat /opt/can-test/moved/sub/file)" = moved
+check "the hard link exists" test "$(sudo stat -c '%h' /opt/can-test/secret)" = 2
+check "the old-dated file exists" test "$(stat -c '%Y' /opt/can-test/old)" = "$(date -d 2001-01-01 +%s)"
 check "the change is not duplicated" test "$(grep -cx '# can-test' /etc/environment)" = 1
 
 # After a restore on a fresh machine, excluded paths and the workspace must not come back.
