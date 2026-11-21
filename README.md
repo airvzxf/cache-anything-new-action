@@ -39,20 +39,34 @@ To run a script, add its hash to the key so the cache is rebuilt when the script
 
 ```yaml
 - uses: airvzxf/cache-anything-new-action/start@v2
-  id: tools
+  id: cuda
   with:
-    key: cuda-12.4
+    key: cuda-13.2.0-nvcc-cudart
 
-- if: steps.tools.outputs.cache-hit != 'true'
+- if: steps.cuda.outputs.cache-hit != 'true'
   uses: Jimver/cuda-toolkit@v0.2.36
   with:
-    cuda: '12.4.0'
+    cuda: '13.2.0'
+    method: network
+    sub-packages: '["nvcc", "cudart"]'
 
 - uses: airvzxf/cache-anything-new-action/end@v2
+
+# The files come back on a hit, but the PATH and variables that cuda-toolkit set through
+# $GITHUB_PATH and $GITHUB_ENV do not, so set them on every run.
+- run: |
+    echo "/usr/local/cuda-13.2/bin" >> "$GITHUB_PATH"
+    echo "CUDA_PATH=/usr/local/cuda-13.2" >> "$GITHUB_ENV"
+
+- run: nvcc --version
 ```
 
 Skip the install steps with `if: steps.<id>.outputs.cache-hit != 'true'`. `end` does nothing
-after a cache hit. To use more than one pair in a job, give each pair its own `name` and pass
+after a cache hit. Put what the cached steps install in `key` (here the CUDA version and the
+packages), so changing them rebuilds the cache. Environment changes made by the cached steps,
+like the `PATH` above, are not files and must be set again after a restore. The
+[benchmarks](https://github.com/airvzxf/cache-anything-new-benchmarks) run this setup: a hit
+restores CUDA in about 3 s and `nvcc` compiles a kernel. To use more than one pair in a job, give each pair its own `name` and pass
 the same value to its `start` and `end`.
 
 ### Containers

@@ -152,3 +152,44 @@ jobs:
             test "${HIT}" = false
           fi
       - run: bash tests/verify.sh
+
+  # The CUDA example of the README: cache what another action installs, on a miss and then
+  # on a hit on a fresh machine.
+  cuda-example:
+    name: cuda example (${{ matrix.phase }})
+    strategy:
+      max-parallel: 1
+      matrix:
+        phase: [miss, hit]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./start
+        id: cuda
+        with:
+          key: ci-${{ github.run_id }}-${{ github.run_attempt }}-cuda-13.2.0-nvcc-cudart
+
+      - if: steps.cuda.outputs.cache-hit != 'true'
+        uses: Jimver/cuda-toolkit@v0.2.36
+        with:
+          cuda: '13.2.0'
+          method: network
+          sub-packages: '["nvcc", "cudart"]'
+
+      - uses: ./end
+
+      - run: |
+          echo "/usr/local/cuda-13.2/bin" >> "$GITHUB_PATH"
+          echo "CUDA_PATH=/usr/local/cuda-13.2" >> "$GITHUB_ENV"
+
+      - run: nvcc --version
+
+      - name: Compile a kernel
+        run: nvcc -o "${RUNNER_TEMP}/hello" tests/hello.cu && test -x "${RUNNER_TEMP}/hello"
+
+      - name: The second run restores the cache when the runner variant matches
+        if: matrix.phase == 'hit'
+        env:
+          HIT: ${{ steps.cuda.outputs.cache-hit }}
+        run: echo "cache-hit=${HIT}"
