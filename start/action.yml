@@ -46,6 +46,9 @@ outputs:
   key:
     description: 'The cache key.'
     value: ${{ steps.prepare.outputs.key }}
+  detection:
+    description: 'On a cache miss, how the changes are found: `fanotify` or `scan`.'
+    value: ${{ steps.restore.outputs.detection }}
 
 runs:
   using: 'composite'

@@ -59,6 +59,9 @@ libc.fanotify_init.argtypes = [ctypes.c_uint, ctypes.c_uint]
 libc.fanotify_mark.argtypes = [ctypes.c_int, ctypes.c_uint, ctypes.c_uint64, ctypes.c_int,
                                ctypes.c_char_p]
 libc.open_by_handle_at.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int]
+libc.name_to_handle_at.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_char_p,
+                                   ctypes.POINTER(ctypes.c_int), ctypes.c_int]
+MAX_HANDLE_SZ = 128
 
 stopping = False
 
@@ -166,6 +169,23 @@ def walk(rules: Rules, top: bytes, found: set) -> None:
                 stack.append(path)
 
 
+def check_decoding(mount_fd: int, watch_path: str) -> None:
+    """Exits when directory handles of this file system cannot be turned back into paths.
+
+    Some file systems (overlayfs without nfs_export, as in most containers) let fanotify
+    report handles that open_by_handle_at cannot decode. Every directory would then look
+    deleted and the list would be empty, so the caller must scan instead."""
+    buffer = ctypes.create_string_buffer(HANDLE_HEADER.size + MAX_HANDLE_SZ)
+    HANDLE_HEADER.pack_into(buffer, 0, MAX_HANDLE_SZ, 0)
+    mount_id = ctypes.c_int()
+    if libc.name_to_handle_at(AT_FDCWD, os.fsencode(watch_path), buffer,
+                              ctypes.byref(mount_id), 0) < 0:
+        unavailable("name_to_handle_at")
+    size = HANDLE_HEADER.size + HANDLE_HEADER.unpack_from(buffer, 0)[0]
+    if resolve(mount_fd, buffer.raw[:size], {}) is None:
+        unavailable("open_by_handle_at")
+
+
 def resolve(mount_fd: int, handle: bytes, cache: dict):
     """The current path of a directory handle, or None when the directory is gone."""
     if handle not in cache:
@@ -196,6 +216,7 @@ def main() -> None:
         unavailable("fanotify_mark")
     # open_by_handle_at rejects an O_PATH descriptor here (EBADF).
     mount_fd = os.open(watch_path, os.O_RDONLY | os.O_DIRECTORY)
+    check_decoding(mount_fd, watch_path)
 
     signal.signal(signal.SIGTERM, on_signal)
     signal.signal(signal.SIGINT, on_signal)

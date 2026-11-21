@@ -26,11 +26,14 @@ jobs:
       fail-fast: false
       matrix:
         mode: [run, start-end]
-        target: [ubuntu-24.04, ubuntu-24.04-arm, container]
-    runs-on: ${{ matrix.target == 'container' && 'ubuntu-24.04' || matrix.target }}
-    container: ${{ matrix.target == 'container' && 'ubuntu:24.04' || null }}
+        target: [ubuntu-24.04, ubuntu-24.04-arm, container, container-fanotify]
+    runs-on: ${{ startsWith(matrix.target, 'container') && 'ubuntu-24.04' || matrix.target }}
+    # container-fanotify: a container that allows fanotify (capabilities and python3).
+    container: ${{ startsWith(matrix.target, 'container') && fromJSON(format('{{"image":"ubuntu:24.04","options":"{0}"}}', matrix.target == 'container-fanotify' && '--cap-add SYS_ADMIN --cap-add DAC_READ_SEARCH' || '')) || null }}
     steps:
       - uses: actions/checkout@v7
+      - if: matrix.target == 'container-fanotify'
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends python3-minimal
 
       - if: matrix.mode == 'run'
         id: single
@@ -57,14 +60,22 @@ jobs:
           HIT: ${{ steps.single.outputs.cache-hit || steps.start.outputs.cache-hit }}
           FILES: ${{ steps.single.outputs.files || steps.end.outputs.files }}
           KEY: ${{ steps.single.outputs.key || steps.start.outputs.key }}
+          DETECTION: ${{ steps.single.outputs.detection || steps.start.outputs.detection }}
+          TARGET: ${{ matrix.target }}
         run: |
           test "${HIT}" = false
           test "${FILES}" -gt 0
+          echo "Detection: ${DETECTION}."
+          case "${TARGET}" in
+            container) test "${DETECTION}" = scan ;;
+            container-fanotify) ;;
+            *) test "${DETECTION}" = fanotify ;;
+          esac
           echo "Archived ${FILES} entries."
           printf '%s\n' "${KEY}" > "${RUNNER_TEMP}/expected-key"
       - run: bash tests/verify.sh
       - name: The runner's own directory is excluded
-        if: matrix.target != 'container'
+        if: "!startsWith(matrix.target, 'container')"
         run: |
           excludes="${RUNNER_TEMP}/cache-anything-new/default/excludes"
           cat "${excludes}"
@@ -89,11 +100,14 @@ jobs:
       fail-fast: false
       matrix:
         mode: [run, start-end]
-        target: [ubuntu-24.04, ubuntu-24.04-arm, container]
-    runs-on: ${{ matrix.target == 'container' && 'ubuntu-24.04' || matrix.target }}
-    container: ${{ matrix.target == 'container' && 'ubuntu:24.04' || null }}
+        target: [ubuntu-24.04, ubuntu-24.04-arm, container, container-fanotify]
+    runs-on: ${{ startsWith(matrix.target, 'container') && 'ubuntu-24.04' || matrix.target }}
+    # container-fanotify: a container that allows fanotify (capabilities and python3).
+    container: ${{ startsWith(matrix.target, 'container') && fromJSON(format('{{"image":"ubuntu:24.04","options":"{0}"}}', matrix.target == 'container-fanotify' && '--cap-add SYS_ADMIN --cap-add DAC_READ_SEARCH' || '')) || null }}
     steps:
       - uses: actions/checkout@v7
+      - if: matrix.target == 'container-fanotify'
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends python3-minimal
 
       - if: matrix.mode == 'run'
         id: single
